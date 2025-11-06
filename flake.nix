@@ -8,6 +8,9 @@
     nixpkgs-unstable = {
       url = "github:NixOS/nixpkgs/nixos-unstable";
     };
+    impermanence = {
+      url = "github:nix-community/impermanence";
+    };
     agenix = {
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system

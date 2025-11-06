@@ -8,6 +8,8 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware.nix
+      ./impermanence.nix
+      ./home-manager.nix
     ];
 
   # Bootloader.
@@ -81,6 +83,11 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.mutableUsers = false;
+  users.users.root = {
+    hashedPassword = "$y$j9T$uMlXWiqOAzM2fRJ0vZTWU0$jbCtgTUtA8u/9rj1ksPPhbNTg0pIgqRAO.8y9UyrSC4";  # hunter2
+  };
+
   users.users.emil = {
     isNormalUser = true;
     description = "Emil Madsen";
@@ -88,6 +95,7 @@
     packages = with pkgs; [
     #  thunderbird
     ];
+    hashedPassword = "$y$j9T$uMlXWiqOAzM2fRJ0vZTWU0$jbCtgTUtA8u/9rj1ksPPhbNTg0pIgqRAO.8y9UyrSC4";  # hunter2
   };
 
   # Enable automatic login for the user.
@@ -106,6 +114,7 @@
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
 neovim
+git
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -133,6 +142,14 @@ neovim
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "24.11"; # Did you read the comment?
+  system.stateVersion = "25.05"; # Did you read the comment?
 
+  # This value determines the Home Manager release that your
+  # configuration is compatible with. This helps avoid breakage
+  # when a new Home Manager release introduces backwards
+  # incompatible changes.
+  # You can update Home Manager without changing this value. See
+  # the Home Manager release notes for a list of state version
+  # changes in each release.
+  home-manager.users.emil.home.stateVersion = "25.05"; # Did you read the comment?
 }
