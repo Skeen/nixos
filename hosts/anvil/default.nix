@@ -26,25 +26,28 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+  networking.networkmanager.ensureProfiles.environmentFiles = [
+    config.age.secrets.home-wifi-password-file.path
+  ];
   networking.networkmanager.ensureProfiles.profiles = {
     "home-wifi" = {
-      # This section defines the connection properties
       connection = {
         id = "TCHSVCZ3RP";
+        uuid = "4fece54c-fc57-428f-afbc-5b6003d9723e";
         type = "wifi";
+        interface-name = "wlp2s0";
         autoconnect = true;
       };
       
-      # This section defines the Wi-Fi specific settings
       wifi = {
+        mode = "infrastructure";
         ssid = "TCHSVCZ3RP";
       };
       
-      # This section defines the security settings
       "wifi-security" = {
         key-mgmt = "wpa-psk";
-        psk-flags = 1; # This flag tells NM the psk is a secret
-        psk = builtins.readFile /persist/secrets/home-wifi.psk;
+        auth-alg = "open";
+        psk = "$HOME_WIFI_PSK";
       };
       
       ipv4 = {
@@ -52,6 +55,7 @@
       };
       
       ipv6 = {
+        addr-gen-mode = "default";
         method = "auto";
       };
     };
@@ -186,6 +190,13 @@ git
 
   age.secrets.users-hashed-password-file = {
     file = "${secrets}/secrets/users-hashed-password-file.age";
+    mode = "400";
+    owner = "root";
+    group = "root";
+  };
+
+  age.secrets.home-wifi-password-file = {
+    file = "${secrets}/secrets/home-wifi-password-file.age";
     mode = "400";
     owner = "root";
     group = "root";
