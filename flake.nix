@@ -2,6 +2,9 @@
   description = "NixOS system";
 
   inputs = {
+    secrets = {
+      url = "git+ssh://git@github.com/Skeen/nixos-secret.git";
+    };
     nixpkgs = {
       url = "github:NixOS/nixpkgs/nixos-25.05";
     };

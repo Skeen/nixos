@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, secrets, ... }:
 
 {
   imports =
@@ -86,7 +86,7 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.mutableUsers = false;
   users.users.root = {
-    hashedPassword = "$y$j9T$uMlXWiqOAzM2fRJ0vZTWU0$jbCtgTUtA8u/9rj1ksPPhbNTg0pIgqRAO.8y9UyrSC4";  # hunter2
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
   };
 
   users.users.emil = {
@@ -96,7 +96,7 @@
     packages = with pkgs; [
     #  thunderbird
     ];
-    hashedPassword = "$y$j9T$uMlXWiqOAzM2fRJ0vZTWU0$jbCtgTUtA8u/9rj1ksPPhbNTg0pIgqRAO.8y9UyrSC4";  # hunter2
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
   };
 
   # Enable automatic login for the user.
@@ -153,4 +153,11 @@ git
   # the Home Manager release notes for a list of state version
   # changes in each release.
   home-manager.users.emil.home.stateVersion = "25.05"; # Did you read the comment?
+
+  age.secrets.users-hashed-password-file = {
+    file = "${secrets}/secrets/users-hashed-password-file.age";
+    mode = "400";
+    owner = "root";
+    group = "root";
+  };
 }
