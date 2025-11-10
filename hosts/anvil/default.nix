@@ -10,6 +10,7 @@
       ./hardware.nix
       ./impermanence.nix
       ./home-manager.nix
+      ./agenix.nix
     ];
 
   # Bootloader.
