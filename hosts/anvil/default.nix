@@ -209,7 +209,7 @@
   };
 
   age.secrets.home-wifi-password-file = {
-    file = "${secrets}/secrets/home-wifi-password-file.age";
+    file = "${secrets}/secrets/home-wifi-password-file.env.age";
     mode = "400";
     owner = "root";
     group = "root";
