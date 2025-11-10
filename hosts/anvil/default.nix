@@ -26,6 +26,36 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+  networking.networkmanager.ensureProfiles.profiles = {
+    "home-wifi" = {
+      # This section defines the connection properties
+      connection = {
+        id = "TCHSVCZ3RP";
+        type = "wifi";
+        autoconnect = true;
+      };
+      
+      # This section defines the Wi-Fi specific settings
+      wifi = {
+        ssid = "TCHSVCZ3RP";
+      };
+      
+      # This section defines the security settings
+      "wifi-security" = {
+        key-mgmt = "wpa-psk";
+        psk-flags = 1; # This flag tells NM the psk is a secret
+        psk = builtins.readFile /persist/secrets/home-wifi.psk;
+      };
+      
+      ipv4 = {
+        method = "auto";
+      };
+      
+      ipv6 = {
+        method = "auto";
+      };
+    };
+  };
 
   # Set your time zone.
   time.timeZone = "Europe/Copenhagen";
