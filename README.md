@@ -113,6 +113,10 @@ git clone git@github.com:Skeen/nixos-secret.git
 nixos-install --no-root-passwd --flake .#chosen-hostname
 ```
 
+# Running on virt-manager
+
+Make sure to install `ovmf` and configure the VM for UEFI boot.
+
 # References
 
 This repository and its configuration is heavily inspired by: https://git.caspervk.net/caspervk/nixos
