@@ -50,6 +50,12 @@
         specialArgs = inputs; # pass flake inputs to modules
         modules = [./hosts/anvil];
       };
+      # Stationary Virtual Machine
+      hearth = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = inputs; # pass flake inputs to modules
+        modules = [./hosts/hearth];
+      };
     };
   };
 }
