@@ -93,12 +93,7 @@ cat /root/.ssh/id_ed25519.pub
 
 10. Rekey all secrets in the `nixos-secret` repository using the host-key (from 5):
 
-```bash
-set AGE_KEY_FILE (mktemp); read -s > $AGE_KEY_FILE
-agenix -i $AGE_KEY_FILE --rekey
-agenix -i $AGE_KEY_FILE -e foo.age
-```
-TODO: FINISH THIS
+See the README on https://github.com/Skeen/nixos-secret for details
 
 11. Prepare configuration for the new machine using the hardware config (from 6):
 
