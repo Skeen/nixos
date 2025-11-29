@@ -112,3 +112,7 @@ git clone git@github.com:Skeen/nixos-secret.git
 ```bash
 nixos-install --no-root-passwd --flake .#chosen-hostname
 ```
+
+# References
+
+This repository and its configuration is heavily inspired by: https://git.caspervk.net/caspervk/nixos
