@@ -13,6 +13,7 @@
     ./impermanence.nix
     ./home-manager.nix
     ./agenix.nix
+    ./ssh.nix
   ];
 
   nix = {
@@ -70,9 +71,6 @@
       #  thunderbird
     ];
     hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
-    openssh.authorizedKeys.keys = [
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUcHrd+lfdEU/HIhhQ8XKc3TSeum4aL/n4LoAWmBFDLX9J7dbi7Wo2dZIm1eREoWbMilL7vp+aq8bT+IeMcRREoJ+XRIXB7F/jFO55NtjRpACKaaFXSvH9c1RcMuW1XS3ZvK944jKTsas/bObqU1ICo/LgPchwxhk6lb1JcblIIkS18zOvm/i7vb1BK63uBGy6GEwn8d+QFp9NgKbsKb3osG3mQ7VokYEt8WVyssPcahyZe+LP49LJpGOtbCewCGHnk6oAXoOHcAJknJaeQoHAZrl8NEa8JBrOkR6p/+nJSb/HoAfnkReMXNTjlzVitVNC+lkkr9CefiGtufm68qIr skeen@morphine"
-    ];
   };
 
   # Allow unfree packages
@@ -92,17 +90,6 @@
   ];
 
   # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  services.openssh = {
-    enable = true;
-    settings = {
-      PermitRootLogin = "no";
-      PasswordAuthentication = false;
-      KbdInteractiveAuthentication = false;
-    };
-  };
-  networking.firewall.allowedTCPPorts = [ 22 ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
