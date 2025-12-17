@@ -18,6 +18,7 @@
     ./ssh-known-hosts.nix
     ./git.nix
     ./lunarvim.nix
+    ./syncthing.nix
   ];
 
   nix = {
