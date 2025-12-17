@@ -56,6 +56,12 @@
         specialArgs = inputs; # pass flake inputs to modules
         modules = [./hosts/hearth];
       };
+      # Hetzner Cloud Server
+      stronghold = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = inputs; # pass flake inputs to modules
+        modules = [./hosts/stronghold];
+      };
     };
   };
 }

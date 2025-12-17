@@ -1,0 +1,130 @@
+# Edit this configuration file to define what should be installed on
+# your system.  Help is available in the configuration.nix(5) man page
+# and in the NixOS manual (accessible by running ‘nixos-help’).
+{
+  config,
+  pkgs,
+  secrets,
+  ...
+}: {
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware.nix
+    ./impermanence.nix
+    ./home-manager.nix
+    ./agenix.nix
+  ];
+
+  nix = {
+    settings = {
+      # Enable flakes
+      experimental-features = ["nix-command" "flakes"];
+    };
+  };
+
+  # Bootloader
+  boot.loader.grub = {
+    enable = true;
+    device = "/dev/sda"; 
+  };
+
+  networking.hostName = "stronghold";
+
+  # Configure network proxy if necessary
+  # networking.proxy.default = "http://user:password@proxy:port/";
+  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+
+  # Set your time zone.
+  time.timeZone = "Europe/Copenhagen";
+
+  # Select internationalisation properties.
+  i18n.defaultLocale = "en_DK.UTF-8";
+
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "da_DK.UTF-8";
+    LC_IDENTIFICATION = "da_DK.UTF-8";
+    LC_MEASUREMENT = "da_DK.UTF-8";
+    LC_MONETARY = "da_DK.UTF-8";
+    LC_NAME = "da_DK.UTF-8";
+    LC_NUMERIC = "da_DK.UTF-8";
+    LC_PAPER = "da_DK.UTF-8";
+    LC_TELEPHONE = "da_DK.UTF-8";
+    LC_TIME = "da_DK.UTF-8";
+  };
+
+  # Configure console keymap
+  console.keyMap = "dk-latin1";
+
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.mutableUsers = false;
+  users.users.root = {
+    # hashedPassword = "!"; # Disable root login
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
+  };
+
+  users.users.emil = {
+    isNormalUser = true;
+    description = "Emil Madsen";
+    extraGroups = ["wheel"];
+    packages = with pkgs; [
+      #  thunderbird
+    ];
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
+    openssh.authorizedKeys.keys = [
+      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUcHrd+lfdEU/HIhhQ8XKc3TSeum4aL/n4LoAWmBFDLX9J7dbi7Wo2dZIm1eREoWbMilL7vp+aq8bT+IeMcRREoJ+XRIXB7F/jFO55NtjRpACKaaFXSvH9c1RcMuW1XS3ZvK944jKTsas/bObqU1ICo/LgPchwxhk6lb1JcblIIkS18zOvm/i7vb1BK63uBGy6GEwn8d+QFp9NgKbsKb3osG3mQ7VokYEt8WVyssPcahyZe+LP49LJpGOtbCewCGHnk6oAXoOHcAJknJaeQoHAZrl8NEa8JBrOkR6p/+nJSb/HoAfnkReMXNTjlzVitVNC+lkkr9CefiGtufm68qIr skeen@morphine"
+    ];
+  };
+
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
+  environment.systemPackages = with pkgs; [
+    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #  wget
+    git
+    (lunarvim.override {
+      viAlias = true;
+      vimAlias = true;
+      nvimAlias = true;
+    })
+  ];
+
+  # List services that you want to enable:
+
+  # Enable the OpenSSH daemon.
+  services.openssh = {
+    enable = true;
+    settings = {
+      PermitRootLogin = "no";
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+    };
+  };
+  networking.firewall.allowedTCPPorts = [ 22 ];
+
+  # This value determines the NixOS release from which the default
+  # settings for stateful data, like file locations and database versions
+  # on your system were taken. It‘s perfectly fine and recommended to leave
+  # this value at the release version of the first install of this system.
+  # Before changing this value read the documentation for this option
+  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+  system.stateVersion = "25.05"; # Did you read the comment?
+
+  # This value determines the Home Manager release that your
+  # configuration is compatible with. This helps avoid breakage
+  # when a new Home Manager release introduces backwards
+  # incompatible changes.
+  # You can update Home Manager without changing this value. See
+  # the Home Manager release notes for a list of state version
+  # changes in each release.
+  home-manager.users.emil.home.stateVersion = "25.05"; # Did you read the comment?
+
+  age.secrets.users-hashed-password-file = {
+    file = "${secrets}/secrets/users-hashed-password-file.age";
+    mode = "400";
+    owner = "root";
+    group = "root";
+  };
+}
