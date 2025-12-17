@@ -35,6 +35,10 @@
     # This is the data directory created above
     dataDir = "/nix/syncthing";
 
+    # Overrides changes done via the WebUI
+    overrideDevices = true;
+    overrideFolders = true;
+
     settings = {
       devices = {
         "phone" = { id = "OG6NKQ2-FVN4NWE-AA7KI25-YNTCMTB-SK3V6SU-VET2KSH-G4ZAUU2-CLB22AR"; };
