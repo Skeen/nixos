@@ -41,7 +41,7 @@
     overrideFolders = true;
 
     # Disable creating the default folder (~/Sync)
-    services.syncthing.extraFlags = [ "--no-default-folder" ];
+    extraFlags = [ "--no-default-folder" ];
 
     settings = {
       devices = {
