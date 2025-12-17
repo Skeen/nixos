@@ -16,6 +16,11 @@
         ".cache/lvim/"
         ".local/share/lvim"
         ".local/state/lvim"
+        # TODO: These do not really belong here
+        "/home/emil/.npm/_cacache"
+        "/home/emil/.npm/_logs"
+        "/home/emil/.cargo/registry"
+        "/home/emil/.cargo/git"
       ];
     };
   };
@@ -24,5 +29,9 @@
     "e     /nix/cache/home/emil/.cache/lvim - - - 14d -"
     "e     /nix/cache/home/emil/.local/share/lvim - - - 14d -"
     "e     /nix/cache/home/emil/.local/state/lvim - - - 14d -"
+    "e     /nix/cache/home/emil/.npm/_cacache - - - 14d -"
+    "e     /nix/cache/home/emil/.npm/_logs - - - 14d -"
+    "e     /nix/cache/home/emil/.cargo/registry - - - 14d -"
+    "e     /nix/cache/home/emil/.cargo/git - - - 14d -"
   ];
 }
