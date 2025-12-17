@@ -32,8 +32,9 @@
     user = "syncthing";
     group = "syncthing";
 
-    # This is the data directory created above
-    dataDir = "/nix/syncthing";
+    # This is the directory created above
+    dataDir = "/nix/syncthing/data";
+    configDir = "/nix/syncthing/config";
 
     # Overrides changes done via the WebUI
     overrideDevices = true;
