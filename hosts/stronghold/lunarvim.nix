@@ -17,10 +17,10 @@
         ".local/share/lvim"
         ".local/state/lvim"
         # TODO: These do not really belong here
-        "/home/emil/.npm/_cacache"
-        "/home/emil/.npm/_logs"
-        "/home/emil/.cargo/registry"
-        "/home/emil/.cargo/git"
+        ".npm/_cacache"
+        ".npm/_logs"
+        ".cargo/registry"
+        ".cargo/git"
       ];
     };
   };
