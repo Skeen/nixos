@@ -43,6 +43,12 @@
         "phone_backup" = {
           path = "/nix/syncthing/phone_backup/";
           devices = ["phone"];
+          # NOTE: GrapheneOS backup is already encrypted on device
+        };
+        "phone_pictures" = {
+          path = "/nix/syncthing/phone_pictures/";
+          devices = ["phone"];
+          type = "receiveencrypted";
         };
       };
 
