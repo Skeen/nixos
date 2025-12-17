@@ -39,6 +39,9 @@
     overrideDevices = true;
     overrideFolders = true;
 
+    # Disable creating the default folder (~/Sync)
+    services.syncthing.extraFlags = [ "--no-default-folder" ];
+
     settings = {
       devices = {
         "phone" = { id = "OG6NKQ2-FVN4NWE-AA7KI25-YNTCMTB-SK3V6SU-VET2KSH-G4ZAUU2-CLB22AR"; };
