@@ -113,6 +113,11 @@ git clone git@github.com:Skeen/nixos-secret.git
 nixos-install --no-root-passwd --flake .#chosen-hostname
 ```
 
+# Refreshing
+```bash
+sudo nixos-rebuild switch --flake . --override-input secrets ./../nixos-secret/
+```
+
 # Running on virt-manager
 
 Make sure to install `ovmf` and configure the VM for UEFI boot.
