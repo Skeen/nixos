@@ -15,6 +15,7 @@
     ./agenix.nix
     ./ssh.nix
     ./ssh-key.nix
+    ./ssh-known-hosts.nix
     ./git.nix
   ];
 
