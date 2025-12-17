@@ -14,6 +14,7 @@
     ./home-manager.nix
     ./agenix.nix
     ./ssh.nix
+    ./ssh-key.nix
     ./git.nix
   ];
 
