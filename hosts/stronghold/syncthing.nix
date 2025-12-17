@@ -17,6 +17,8 @@
   # Create the data folder
   systemd.tmpfiles.rules = [
     "d /nix/syncthing 0750 syncthing syncthing -"
+    "d /nix/syncthing/data 0750 syncthing syncthing -"
+    "d /nix/syncthing/config 0750 syncthing syncthing -"
   ];
 
   # Configure syncthing
