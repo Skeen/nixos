@@ -88,6 +88,7 @@
       nvimAlias = true;
     })
   ];
+  environment.variables.EDITOR = "lvim";
 
   # List services that you want to enable:
 
