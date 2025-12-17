@@ -55,4 +55,32 @@
       "/etc/machine-id" # needed for /var/log
     ];
   };
+
+  # These files are just cache which can be removed whenever
+  environment.persistence."/nix/cache" = {
+    hideMounts = true;
+    directories = [
+      {
+        directory = "/root/.cache/nix";
+        user = "root";
+        group = "root";
+        mode = "0700";
+      }
+    ];
+    files = [
+      "/root/.nix-channels"
+    ];
+
+    users.emil = {
+      directories = [
+        ".cache/nix"
+      ];
+    };
+  };
+
+  systemd.tmpfiles.rules = [
+    "e     /nix/cache/root/.cache/nix    - - - 14d -"
+    "r     /nix/cache/root/.nix-channels - - - 30d -"
+    "e     /nix/cache/home/emil/.cache/nix - - - 14d -"
+  ];
 }
