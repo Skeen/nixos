@@ -54,10 +54,5 @@
     files = [
       "/etc/machine-id" # needed for /var/log
     ];
-    users.emil = {
-      directories = [
-        "/" # entire home directory (TODO?)
-      ];
-    };
   };
 }
