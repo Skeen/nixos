@@ -25,7 +25,6 @@
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/BOOT";
     fsType = "ext4";
-    options = ["fmask=0077" "dmask=0077"];
   };
   fileSystems."/nix" = {
     device = "/dev/disk/by-label/nix";
