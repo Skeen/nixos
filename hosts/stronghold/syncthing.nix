@@ -1,4 +1,9 @@
-{config, secrets, ...}: {
+{config, secrets, ...}:
+let
+  base_dir = "/nix/syncthing";
+  data_dir = "${base_dir}/data";
+  config_dir = "${base_dir}/config";
+in {
   # Syncthing is a continuous file synchronization program. It synchronizes
   # files between two or more computers in real time. It's basically a
   # self-hosted Dropbox for Linux users, but without FTP, curlftpfs, and SVN.
@@ -16,9 +21,9 @@
 
   # Create the data folder
   systemd.tmpfiles.rules = [
-    "d /nix/syncthing 0750 syncthing syncthing -"
-    "d /nix/syncthing/data 0750 syncthing syncthing -"
-    "d /nix/syncthing/config 0750 syncthing syncthing -"
+    "d ${base_dir} 0750 syncthing syncthing -"
+    "d ${data_dir} 0750 syncthing syncthing -"
+    "d ${config_dir} 0750 syncthing syncthing -"
   ];
 
   # Configure syncthing
@@ -35,8 +40,8 @@
     group = "syncthing";
 
     # This is the directory created above
-    dataDir = "/nix/syncthing/data";
-    configDir = "/nix/syncthing/config";
+    dataDir = data_dir;
+    configDir = config_dir;
 
     # Overrides changes done via the WebUI
     overrideDevices = true;
@@ -52,12 +57,12 @@
       };
       folders = {
         "phone_backup" = {
-          path = "phone_backup";
+          path = "${data_dir}/phone_backup";
           devices = ["phone"];
           # NOTE: GrapheneOS backup is already encrypted on device
         };
         "phone_pictures" = {
-          path = "phone_pictures";
+          path = "${data_dir}/phone_pictures";
           devices = ["phone" "morphine"];
           type = "receiveencrypted";
         };
