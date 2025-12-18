@@ -19,7 +19,6 @@
     ./git.nix
     ./lunarvim.nix
     ./syncthing.nix
-    ./restic.nix
   ];
 
   nix = {
