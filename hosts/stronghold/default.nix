@@ -19,6 +19,7 @@
     ./git.nix
     ./lunarvim.nix
     ./syncthing.nix
+    ./synapse.nix
   ];
 
   nix = {
