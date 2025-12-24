@@ -21,6 +21,7 @@
     ./syncthing2.nix
     # ./synapse.nix
     ./nixos-containers.nix
+    ./traggo.nix
   ];
 
   nix = {

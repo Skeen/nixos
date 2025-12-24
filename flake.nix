@@ -32,6 +32,14 @@
       url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs-unstable"; # use nixpkgs-unstable
     };
+    thyme = {
+      url = "github:skeen/thyme/master";
+      inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
+    };
+    traggo = {
+      url = "github:skeen/traggo/master";
+      inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
+    };
   };
 
   outputs = {
@@ -41,7 +49,6 @@
   } @ inputs: {
     # https://kamadorueda.com/alejandra/
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
-    formatter.aarch64-linux = nixpkgs.legacyPackages.aarch64-linux.alejandra;
 
     nixosConfigurations = {
       # Work laptop
