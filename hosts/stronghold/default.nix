@@ -23,6 +23,7 @@
     # ./synapse.nix
     ./nixos-containers.nix
     ./traggo.nix
+    ./caddy.nix
   ];
 
   nix = {
