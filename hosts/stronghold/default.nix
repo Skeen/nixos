@@ -12,6 +12,7 @@
     ./hardware.nix
     ./impermanence.nix
     ./home-manager.nix
+    ./shell.nix
     ./agenix.nix
     ./ssh.nix
     ./ssh-key.nix
