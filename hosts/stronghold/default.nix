@@ -20,7 +20,7 @@
     ./git.nix
     ./lunarvim.nix
     ./syncthing2.nix
-    # ./synapse.nix
+    ./synapse.nix
     ./nixos-containers.nix
     ./traggo.nix
     ./caddy.nix
