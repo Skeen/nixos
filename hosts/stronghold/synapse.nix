@@ -1,5 +1,8 @@
-{secrets, config, ...}: 
-let
+{
+  secrets,
+  config,
+  ...
+}: let
   base_dir = "/nix/synapse";
   data_dir = "${base_dir}/data";
   db_data_dir = "${base_dir}/db";

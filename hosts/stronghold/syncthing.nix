@@ -1,5 +1,8 @@
-{config, secrets, ...}:
-let
+{
+  config,
+  secrets,
+  ...
+}: let
   base_dir = "/nix/syncthing";
   data_dir = "${base_dir}/data";
   config_dir = "${base_dir}/config";
@@ -48,12 +51,12 @@ in {
     overrideFolders = true;
 
     # Disable creating the default folder (~/Sync)
-    extraFlags = [ "--no-default-folder" ];
+    extraFlags = ["--no-default-folder"];
 
     settings = {
       devices = {
-        "phone" = { id = "OG6NKQ2-FVN4NWE-AA7KI25-YNTCMTB-SK3V6SU-VET2KSH-G4ZAUU2-CLB22AR"; };
-        "morphine" = { id = "JSEDIEO-N6KAZFG-YGXCNR5-VZS5JQM-NQFBEC2-UTPRCCY-GXNW2DX-TMNFSAD"; };
+        "phone" = {id = "OG6NKQ2-FVN4NWE-AA7KI25-YNTCMTB-SK3V6SU-VET2KSH-G4ZAUU2-CLB22AR";};
+        "morphine" = {id = "JSEDIEO-N6KAZFG-YGXCNR5-VZS5JQM-NQFBEC2-UTPRCCY-GXNW2DX-TMNFSAD";};
       };
       folders = {
         "phone_backup" = {
@@ -138,5 +141,4 @@ in {
     owner = "root";
     group = "root";
   };
-
 }

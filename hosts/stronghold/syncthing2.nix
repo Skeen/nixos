@@ -1,8 +1,12 @@
-{ config, pkgs, lib, secrets, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  secrets,
+  ...
+}: let
   # HOST-SIDE paths
   host_data_dir = "/nix/syncthing-data";
-  
 in {
   # ---------------------------------------------------------
   # 1. Host Configuration
@@ -25,7 +29,7 @@ in {
   # Networking: NAT for container internet access
   networking.nat = {
     enable = true;
-    internalInterfaces = [ "ve-syncthing" ];
+    internalInterfaces = ["ve-syncthing"];
     externalInterface = "enp1s0"; # Check your interface with `ip link`!
   };
 
@@ -44,7 +48,7 @@ in {
   };
   age.secrets.backblaze-environment-file = {
     file = "${secrets}/secrets/stronghold-syncthing-backblaze-application-key.env.age";
-    mode = "400"; 
+    mode = "400";
     owner = "syncthing";
     group = "syncthing";
   };
@@ -64,7 +68,7 @@ in {
     container_base_dir = "/var/lib/syncthing";
     container_data_dir = "${container_base_dir}/data";
     container_config_dir = "${container_base_dir}/config";
-    
+
     # Secrets paths
     c_secret_cert = "/etc/syncthing-cert.pem";
     c_secret_key = "/etc/syncthing-key.pem";
@@ -78,20 +82,51 @@ in {
 
     forwardPorts = [
       # { hostPort = 8384; containerPort = 8384; protocol = "tcp"; }
-      { hostPort = 22000; containerPort = 22000; protocol = "tcp"; }
-      { hostPort = 22000; containerPort = 22000; protocol = "udp"; }
-      { hostPort = 21027; containerPort = 21027; protocol = "udp"; }
+      {
+        hostPort = 22000;
+        containerPort = 22000;
+        protocol = "tcp";
+      }
+      {
+        hostPort = 22000;
+        containerPort = 22000;
+        protocol = "udp";
+      }
+      {
+        hostPort = 21027;
+        containerPort = 21027;
+        protocol = "udp";
+      }
     ];
 
     bindMounts = {
-      "${container_base_dir}" = { hostPath = host_data_dir; isReadOnly = false; };
-      "${c_secret_cert}" = { hostPath = config.age.secrets.syncthing-cert.path; isReadOnly = true; };
-      "${c_secret_key}" = { hostPath = config.age.secrets.syncthing-key.path; isReadOnly = true; };
-      "${c_secret_b2}" = { hostPath = config.age.secrets.backblaze-environment-file.path; isReadOnly = true; };
-      "${c_secret_restic}" = { hostPath = config.age.secrets.restic-password-file.path; isReadOnly = true; };
+      "${container_base_dir}" = {
+        hostPath = host_data_dir;
+        isReadOnly = false;
+      };
+      "${c_secret_cert}" = {
+        hostPath = config.age.secrets.syncthing-cert.path;
+        isReadOnly = true;
+      };
+      "${c_secret_key}" = {
+        hostPath = config.age.secrets.syncthing-key.path;
+        isReadOnly = true;
+      };
+      "${c_secret_b2}" = {
+        hostPath = config.age.secrets.backblaze-environment-file.path;
+        isReadOnly = true;
+      };
+      "${c_secret_restic}" = {
+        hostPath = config.age.secrets.restic-password-file.path;
+        isReadOnly = true;
+      };
     };
 
-    config = { config, pkgs, ... }: {
+    config = {
+      config,
+      pkgs,
+      ...
+    }: {
       system.stateVersion = "25.05";
 
       systemd.tmpfiles.rules = [
@@ -109,14 +144,14 @@ in {
         configDir = container_config_dir;
         overrideDevices = true;
         overrideFolders = true;
-        extraFlags = [ "--no-default-folder" ];
+        extraFlags = ["--no-default-folder"];
         cert = c_secret_cert;
         key = c_secret_key;
 
         settings = {
           devices = {
-            "phone" = { id = "OG6NKQ2-FVN4NWE-AA7KI25-YNTCMTB-SK3V6SU-VET2KSH-G4ZAUU2-CLB22AR"; };
-            "morphine" = { id = "JSEDIEO-N6KAZFG-YGXCNR5-VZS5JQM-NQFBEC2-UTPRCCY-GXNW2DX-TMNFSAD"; };
+            "phone" = {id = "OG6NKQ2-FVN4NWE-AA7KI25-YNTCMTB-SK3V6SU-VET2KSH-G4ZAUU2-CLB22AR";};
+            "morphine" = {id = "JSEDIEO-N6KAZFG-YGXCNR5-VZS5JQM-NQFBEC2-UTPRCCY-GXNW2DX-TMNFSAD";};
           };
           folders = {
             "phone_backup" = {
@@ -129,7 +164,7 @@ in {
               type = "receiveencrypted";
             };
           };
-          options = { urAccepted = -1; };
+          options = {urAccepted = -1;};
         };
       };
 
@@ -149,7 +184,7 @@ in {
         ];
         environmentFile = c_secret_b2;
         passwordFile = c_secret_restic;
-        paths = [ container_data_dir ];
+        paths = [container_data_dir];
       };
     };
   };
