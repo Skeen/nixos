@@ -144,6 +144,31 @@ in
         "plugins/plugin-${toString pluginIds.clock}/digital-date-format" = "%Y-%m-%d";
         # Clock Options: Time: Format: "HH:MM:SS"
         "plugins/plugin-${toString pluginIds.clock}/digital-time-format" = "%H:%M:%S";
+
+        # Actions
+        # -------
+        # We want the actions menu to show the full name, giving the defined options when clicked
+        # General: Appearance: Session Menu (1)
+        "plugins/plugin-${toString pluginIds.power}/appearance" = 1;
+        # General: Title: Full Name (0)
+        "plugins/plugin-${toString pluginIds.power}/button-title" = 0;
+        # Actions: List
+        "plugins/plugin-${toString pluginIds.power}/items" = [
+          "+lock-screen"
+          "-switch-user"  # Disabled as we only have 1 user
+          "+separator"
+          "+suspend"
+          "-hibernate"  # Disabled as we need swap
+          "-hybrid-sleep"  # Disabled as we need swap
+          "+separator"
+          "+shutdown"
+          "+restart"
+          "+separator"
+          "+logout"
+          "-logout-dialog"  # Disabled as all options are covered by others
+        ];
+        # Actions: Show confirmation dialog
+        "plugins/plugin-${toString pluginIds.power}/ask-confirmation" = true;
       };
     };
   };
