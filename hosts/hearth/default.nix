@@ -16,6 +16,7 @@
     ../../modules/base/git.nix
     ./monitors.nix
     ./xfce.nix
+    ./darkmode.nix
   ];
 
   nix = {
