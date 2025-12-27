@@ -17,6 +17,7 @@
     ./monitors.nix
     ./xfce.nix
     ./darkmode.nix
+    ./discord.nix
   ];
 
   nix = {
