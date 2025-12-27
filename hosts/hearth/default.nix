@@ -13,6 +13,7 @@
     ./impermanence.nix
     ./home-manager.nix
     ./agenix.nix
+    ../../modules/base/git.nix
   ];
 
   nix = {
