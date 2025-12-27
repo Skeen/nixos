@@ -14,6 +14,7 @@
     ./home-manager.nix
     ./agenix.nix
     ../../modules/base/git.nix
+    ./monitors.nix
   ];
 
   nix = {

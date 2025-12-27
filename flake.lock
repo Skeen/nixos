@@ -43,6 +43,24 @@
         "type": "github"
       }
     },
+    "flake-utils_2": {
+      "inputs": {
+        "systems": "systems_4"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -223,7 +241,8 @@
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "secrets": "secrets",
-        "thyme": "thyme"
+        "thyme": "thyme",
+        "traggo": "traggo"
       }
     },
     "secrets": {
@@ -289,6 +308,21 @@
         "type": "github"
       }
     },
+    "systems_4": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
     "thyme": {
       "inputs": {
         "nixpkgs": [
@@ -308,6 +342,28 @@
         "owner": "skeen",
         "ref": "master",
         "repo": "thyme",
+        "type": "github"
+      }
+    },
+    "traggo": {
+      "inputs": {
+        "flake-utils": "flake-utils_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1766685649,
+        "narHash": "sha256-fUJY1RbnY9OhSyhhiumDm+FrIbZMknqRrzWDh2uH00o=",
+        "owner": "skeen",
+        "repo": "traggo",
+        "rev": "411599c95213f305421aa1f678c33b4c222960a2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "skeen",
+        "ref": "master",
+        "repo": "traggo",
         "type": "github"
       }
     },
