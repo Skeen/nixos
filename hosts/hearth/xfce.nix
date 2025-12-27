@@ -1,18 +1,25 @@
-{ ... }:
+# NOTE: It may be necessary to run: `xfce4-panel -r` after `nixos-rebuild switch`.
+#       This is the case as xfce4-panel may otherwise cache the old configuration.
+
+{ lib, ... }:
 let
+  # Define a reusable helper
+  enumerate = list: lib.listToAttrs (lib.imap1 (i: n: { name = n; value = i; }) list);
   # Plugin IDs must be defined here, inside this file
-  pluginIds = {
-    menu = 1;
-    tasklist = 2;
-    separator1 = 3;
-    workspaces = 4;
-    separator2 = 5;
-    systray = 6;
-    separator3 = 7;
-    clock = 8;
-    separator4 = 9;
-    power = 10;
-  };
+  pluginIds = enumerate [
+    "menu"
+    "tasklist"
+    "separator1"
+    "workspaces"
+    "separator2"
+    "systray"
+    "separator3"
+    "audio"
+    "separator4"
+    "clock"
+    "separator5"
+    "power"
+  ];
 in
 {
   home-manager.users.emil = { pkgs, lib, ... }: {
@@ -20,6 +27,7 @@ in
     # 1. Ensure xfce4-panel and needed plugins are available
     home.packages = with pkgs.xfce; [
       xfce4-panel
+      xfce4-pulseaudio-plugin
     ];
 
     # 2. Purge the XFCE database
@@ -76,8 +84,10 @@ in
           pluginIds.separator2
           pluginIds.systray
           pluginIds.separator3
-          pluginIds.clock
+          pluginIds.audio
           pluginIds.separator4
+          pluginIds.clock
+          pluginIds.separator5
           pluginIds.power
         ];
 
@@ -89,8 +99,10 @@ in
         "plugins/plugin-${toString pluginIds.separator2}" = "separator";
         "plugins/plugin-${toString pluginIds.systray}" = "systray";
         "plugins/plugin-${toString pluginIds.separator3}" = "separator";
-        "plugins/plugin-${toString pluginIds.clock}" = "clock";
+        "plugins/plugin-${toString pluginIds.audio}" = "pulseaudio";
         "plugins/plugin-${toString pluginIds.separator4}" = "separator";
+        "plugins/plugin-${toString pluginIds.clock}" = "clock";
+        "plugins/plugin-${toString pluginIds.separator5}" = "separator";
         "plugins/plugin-${toString pluginIds.power}" = "actions";
 
         # Individual Plugin Settings
@@ -99,7 +111,7 @@ in
         # Tasklist
         # --------
         # We want our windows to group together
-        # Behavior: Group windows by application
+        # Behaviour: Group windows by application
         "plugins/plugin-${toString pluginIds.tasklist}/grouping" = 1;
         # Separator 1 is set to expand, so taskbar has space to expand into
         # Appearance: Expand
@@ -113,6 +125,13 @@ in
         "plugins/plugin-${toString pluginIds.separator2}/style" = 0;
         "plugins/plugin-${toString pluginIds.separator3}/style" = 0;
         "plugins/plugin-${toString pluginIds.separator4}/style" = 0;
+        "plugins/plugin-${toString pluginIds.separator5}/style" = 0;
+
+        # Audio
+        # -----
+        # We want to use keyboard controls to control volume, playback, etc
+        # General: Behaviour: Enable keyboard shortcuts for volume control
+        "plugins/plugin-${toString pluginIds.audio}/enable-keyboard-shortcuts" = true;
 
         # Clock
         # -----
