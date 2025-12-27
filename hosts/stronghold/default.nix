@@ -17,7 +17,7 @@
     ./ssh.nix
     ./ssh-key.nix
     ./ssh-known-hosts.nix
-    ./git.nix
+    ../../modules/base/git.nix
     ./lunarvim.nix
     ./syncthing2.nix
     ./synapse.nix
