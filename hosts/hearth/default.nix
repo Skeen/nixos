@@ -23,8 +23,13 @@
   };
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot = {
+    loader = {
+      efi.canTouchEfiVariables = true;
+      systemd-boot.enable = true;
+    };
+    initrd.luks.devices.crypted.device = "/dev/disk/by-label/crypted";
+  };
 
   networking.hostName = "hearth"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -35,40 +40,6 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
-  networking.networkmanager.ensureProfiles.environmentFiles = [
-    config.age.secrets.home-wifi-password-file.path
-  ];
-  networking.networkmanager.ensureProfiles.profiles = {
-    "home-wifi" = {
-      connection = {
-        id = "TCHSVCZ3RP";
-        uuid = "4fece54c-fc57-428f-afbc-5b6003d9723e";
-        type = "wifi";
-        interface-name = "wlp2s0";
-        autoconnect = true;
-      };
-
-      wifi = {
-        mode = "infrastructure";
-        ssid = "TCHSVCZ3RP";
-      };
-
-      "wifi-security" = {
-        key-mgmt = "wpa-psk";
-        auth-alg = "open";
-        psk = "$HOME_WIFI_PSK";
-      };
-
-      ipv4 = {
-        method = "auto";
-      };
-
-      ipv6 = {
-        addr-gen-mode = "default";
-        method = "auto";
-      };
-    };
-  };
 
   # Set your time zone.
   time.timeZone = "Europe/Copenhagen";
@@ -203,13 +174,6 @@
 
   age.secrets.users-hashed-password-file = {
     file = "${secrets}/secrets/users-hashed-password-file.age";
-    mode = "400";
-    owner = "root";
-    group = "root";
-  };
-
-  age.secrets.home-wifi-password-file = {
-    file = "${secrets}/secrets/home-wifi-password-file.env.age";
     mode = "400";
     owner = "root";
     group = "root";
