@@ -15,6 +15,7 @@
     ./agenix.nix
     ../../modules/base/git.nix
     ./monitors.nix
+    ./xfce.nix
   ];
 
   nix = {
