@@ -132,6 +132,12 @@ in
         # We want to use keyboard controls to control volume, playback, etc
         # General: Behaviour: Enable keyboard shortcuts for volume control
         "plugins/plugin-${toString pluginIds.audio}/enable-keyboard-shortcuts" = true;
+        # We want to have as much granuality as possible on the volume wheel
+        # General: Behaviour: Volume step
+        "plugins/plugin-${toString pluginIds.audio}/volume-step" = 1;
+        # We do not wanna peak volume above 100%
+        # General: Behaviour: Maximum volume
+        "plugins/plugin-${toString pluginIds.audio}/volume-max" = 100;
 
         # Clock
         # -----
