@@ -18,6 +18,7 @@
     ./xfce/default.nix
     ./darkmode.nix
     ./discord.nix
+    ./steam.nix
   ];
 
   nix = {
