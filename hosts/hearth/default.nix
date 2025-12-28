@@ -15,7 +15,7 @@
     ./agenix.nix
     ../../modules/base/git.nix
     ./monitors.nix
-    ./xfce.nix
+    ./xfce/default.nix
     ./darkmode.nix
     ./discord.nix
   ];
