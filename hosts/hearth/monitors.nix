@@ -6,6 +6,7 @@
     profiles = {
       "default" = {
         # Fingerprints produced using `autorandr --fingerprint`
+        # NOTE: This should be aligned with xfce/background.nix
         fingerprint = {
           #"DP-1" = "...";
           "DP-2" = "00ffffffffffff0005e36020d9790300241b0103802c18782aeed1a555489b26125054bfef00d1c0b30095008180814081c001010101023a801871382d40582c4500b3ef1000001e000000fd00324c1e5311000a202020202020000000fc003230363057330a202020202020000000ff0047434548394841323237383031002c";

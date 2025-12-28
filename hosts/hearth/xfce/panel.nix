@@ -1,4 +1,4 @@
-# NOTE: It may be necessary to run: `xfce4-panel -r` after `nixos-rebuild switch`.
+# NOTE: It may be necessary to run: `xfce4-panel --restart` after `nixos-rebuild switch`.
 #       This is the case as xfce4-panel may otherwise cache the old configuration.
 
 { lib, ... }:
