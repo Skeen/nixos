@@ -129,10 +129,12 @@ in
 
         # Audio
         # -----
-        # We want to use keyboard controls to control volume, playback, etc
+        # We want do NOT want keyboard controls for volume, playback, etc, as they do
+        # not provide the desired control and granuality. Instead keyboard controls are
+        # done manually as keyboard shortcuts in shortcuts.nix.
         # General: Behaviour: Enable keyboard shortcuts for volume control
-        "plugins/plugin-${toString pluginIds.audio}/enable-keyboard-shortcuts" = true;
-        # We want to have as much granuality as possible on the volume wheel
+        "plugins/plugin-${toString pluginIds.audio}/enable-keyboard-shortcuts" = false;
+        # We want as much granuality as possible on the volume step
         # General: Behaviour: Volume step
         "plugins/plugin-${toString pluginIds.audio}/volume-step" = 1;
         # We do not wanna peak volume above 100%
