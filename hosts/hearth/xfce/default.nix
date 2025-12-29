@@ -14,5 +14,6 @@
   imports = [
     ./panel.nix
     ./background.nix
+    ./terminal.nix
   ];
 }
