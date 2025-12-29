@@ -140,6 +140,8 @@
       vimAlias = true;
       nvimAlias = true;
     })
+    # xclip is needed for clipboard control from lunarvim (i.e. space+y)
+    xclip
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
