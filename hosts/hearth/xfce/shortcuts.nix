@@ -107,8 +107,8 @@
         "xfwm4/custom/<Control><Alt>Left" = "left_workspace_key";
         "xfwm4/custom/<Control><Alt>Right" = "right_workspace_key";
         # Move the current window to the next or previous workspace
-        "xfwm4/custom/<Control><Alt>End" = "move_window_next_workspace_key";
-        "xfwm4/custom/<Control><Alt>Home" = "move_window_prev_workspace_key";
+        "xfwm4/custom/<Super>Right" = "move_window_next_workspace_key";
+        "xfwm4/custom/<Super>Left" = "move_window_prev_workspace_key";
 
         # Go to workspace n
         "xfwm4/custom/<Control>F1" = "workspace_1_key";
