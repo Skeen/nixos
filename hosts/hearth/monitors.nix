@@ -1,4 +1,11 @@
 {pkgs, ...}: {
+  # 1. Force the mode creation on startup
+  services.xserver.displayManager.sessionCommands = ''
+    # Create a 5120x1440 120Hz mode and add it to DP-3
+    ${pkgs.xorg.xrandr}/bin/xrandr --newmode "5120x1440_120" 966.00 5120 5168 5200 5360 1440 1443 1453 1502 +hsync -vsync
+    ${pkgs.xorg.xrandr}/bin/xrandr --addmode DP-3 "5120x1440_120"
+  '';
+
   # AutoRandr is a smart wrapper around xrandr for handling display configuration
   services.autorandr = {
     enable = true;
@@ -45,7 +52,7 @@
             enable = true;
             primary = true;
             position = "640x1080";
-            mode = "5120x1440";
+            mode = "5120x1440_120";
             rate = "120.00";
           };
         };
