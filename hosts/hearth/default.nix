@@ -19,6 +19,7 @@
     ./darkmode.nix
     ./discord.nix
     ./steam.nix
+    ./swap.nix
   ];
 
   nix = {
