@@ -4,7 +4,7 @@
 { ... }:
 let
   # NOTE: This should be aligned with monitors.nix
-  monitors = ["DP-2" "DP-3" "HDMI-1" "HDMI-2" "HDMI-3"];
+  monitors = ["DP-3" "HDMI-1" "HDMI-2" "HDMI-3"];
 
   generate-monitor-settings = monitor: {
     # Desktop Settings: Background: Style: None (Solid Color) (instead of image)
