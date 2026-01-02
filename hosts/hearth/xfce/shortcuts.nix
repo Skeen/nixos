@@ -69,6 +69,7 @@
         "commands/custom/<Control><Alt>l" = "xflock4";
         # Control alt t for terminal
         "commands/custom/<Control><Alt>t" = "exo-open --launch TerminalEmulator";
+        "commands/custom/<Super>Return" = "exo-open --launch TerminalEmulator";
         # Control alt delete for task manager
         "commands/custom/<Control><Alt>Delete" = "xfce4-taskmanager";
 
