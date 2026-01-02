@@ -125,16 +125,32 @@
         "xfwm4/custom/<Control>F12" = "workspace_12_key";
 
         # Control window tiling
-        "xfwm4/custom/<Super>KP_Down" = "tile_down_key";
-        "xfwm4/custom/<Super>KP_End" = "tile_down_left_key";
-        "xfwm4/custom/<Super>KP_Home" = "tile_up_left_key";
-        "xfwm4/custom/<Super>KP_Left" = "tile_left_key";
-        "xfwm4/custom/<Super>KP_Next" = "tile_down_right_key";
+        # NumLock on uses KP_1 -> KP_9, while NumLock off uses KP_End to KP_Prior
+        # KP_3/9 use both the KP_Next/Prior and KP_Page_Down/Up names for completeness
+        # KP_5 is currently broken, no idea why
+        "xfwm4/custom/<Super>KP_1"       = "tile_down_left_key";
+        "xfwm4/custom/<Super>KP_End"     = "tile_down_left_key";
+        "xfwm4/custom/<Super>KP_2"       = "tile_down_key";
+        "xfwm4/custom/<Super>KP_Down"    = "tile_down_key";
+        "xfwm4/custom/<Super>KP_3"       = "tile_down_right_key";
+        "xfwm4/custom/<Super>KP_Next"    = "tile_down_right_key";
+        "xfwm4/custom/<Super>KP_Page_Down" = "tile_down_right_key";
+        "xfwm4/custom/<Super>KP_4"       = "tile_left_key";
+        "xfwm4/custom/<Super>KP_Left"    = "tile_left_key";
+        "xfwm4/custom/<Super>KP_5"       = "maximize_window_key";
+        "xfwm4/custom/<Super>KP_Begin"   = "maximize_window_key";
+        "xfwm4/custom/<Super><Mod2>KP_5" = "maximize_window_key";
+        "xfwm4/custom/<Super><Mod2>KP_Begin" = "maximize_window_key";
+        "xfwm4/custom/<Super>KP_6"       = "tile_right_key";
+        "xfwm4/custom/<Super>KP_Right"   = "tile_right_key";
+        "xfwm4/custom/<Super>KP_7"       = "tile_up_left_key";
+        "xfwm4/custom/<Super>KP_Home"    = "tile_up_left_key";
+        "xfwm4/custom/<Super>KP_8"       = "tile_up_key";
+        "xfwm4/custom/<Super>KP_Up"      = "tile_up_key";
+        "xfwm4/custom/<Super>KP_9"       = "tile_up_right_key";
+        "xfwm4/custom/<Super>KP_Prior"   = "tile_up_right_key";
         "xfwm4/custom/<Super>KP_Page_Up" = "tile_up_right_key";
-        "xfwm4/custom/<Super>KP_Right" = "tile_right_key";
-        "xfwm4/custom/<Super>KP_Up" = "tile_up_key";
       };
     };
   };
 }
-
