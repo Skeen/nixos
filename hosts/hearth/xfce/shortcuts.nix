@@ -35,7 +35,7 @@
     xfconf.settings = {
       xfce4-keyboard-shortcuts = {
         # Register both commands and xfwm4 (window manager shortcuts from the below)
-        "providers" = "[xfwm4,commands]";
+        "providers" = ["xfwm4" "commands"];
 
         # Interpret 'custom' commands as overrides for defaults
         "commands/custom/override" = true;
