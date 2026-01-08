@@ -9,6 +9,12 @@
       userEmail = "githubpublicemail.goldmine822@passinbox.com";
 
       extraConfig = {
+        core = {
+          editor = "vim";
+        };
+      };
+
+      extraConfig = {
         # Always run `git pull --rebase`
         # Using `--rebase` stops git from making merge commits when both the local and
         # the remote have advanced at once, instead the local changes are replayed atop
