@@ -21,6 +21,7 @@
     ./steam.nix
     ./swap.nix
     ./podman.nix
+    ./fish.nix
   ];
 
   nix = {
