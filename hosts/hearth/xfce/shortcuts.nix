@@ -66,6 +66,7 @@
         "commands/custom/<Control><Alt>Escape" = "xkill";
         # Control alt l and super l to lock
         "commands/custom/<Control><Alt>l" = "xflock4";
+        "commands/custom/<Super>l" = "xflock4";
         # Control alt t for terminal
         "commands/custom/<Control><Alt>t" = "exo-open --launch TerminalEmulator";
         "commands/custom/<Super>Return" = "exo-open --launch TerminalEmulator";
