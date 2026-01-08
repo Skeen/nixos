@@ -64,8 +64,7 @@
         "commands/custom/<Control><Alt>q" = "xfce4-session-logout";
         # Control alt escape to xkill
         "commands/custom/<Control><Alt>Escape" = "xkill";
-        # Control alt l to lock
-        "commands/custom/Sleep" = "xflock4";
+        # Control alt l and super l to lock
         "commands/custom/<Control><Alt>l" = "xflock4";
         # Control alt t for terminal
         "commands/custom/<Control><Alt>t" = "exo-open --launch TerminalEmulator";
