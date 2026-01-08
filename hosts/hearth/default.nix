@@ -20,6 +20,7 @@
     ./discord.nix
     ./steam.nix
     ./swap.nix
+    ./podman.nix
   ];
 
   nix = {
