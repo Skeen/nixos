@@ -14,5 +14,6 @@
     ./background.nix
     ./terminal.nix
     ./shortcuts.nix
+    ./screensaver.nix
   ];
 }
