@@ -22,6 +22,7 @@
     ./swap.nix
     ./podman.nix
     ./fish.nix
+    ./nix-ld.nix
   ];
 
   nix = {
