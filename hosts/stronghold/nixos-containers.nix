@@ -12,7 +12,7 @@
     ];
   };
 
-  systemd.tmpfiles.rules = [
-    "e     /nix/cache/var/lib/nixos-containers   - - - 30d -"
-  ];
+  #systemd.tmpfiles.rules = [
+  #  "e     /nix/cache/var/lib/nixos-containers   - - - 30d -"
+  #];
 }

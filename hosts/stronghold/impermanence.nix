@@ -78,9 +78,9 @@
     };
   };
 
-  systemd.tmpfiles.rules = [
-    "e     /nix/cache/root/.cache/nix    - - - 14d -"
-    "r     /nix/cache/root/.nix-channels - - - 30d -"
-    "e     /nix/cache/home/emil/.cache/nix - - - 14d -"
-  ];
+  #systemd.tmpfiles.rules = [
+  #  "e     /nix/cache/root/.cache/nix    - - - 14d -"
+  #  "r     /nix/cache/root/.nix-channels - - - 30d -"
+  #  "e     /nix/cache/home/emil/.cache/nix - - - 14d -"
+  #];
 }
