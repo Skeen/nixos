@@ -18,10 +18,10 @@
     ./ssh-key.nix
     ./ssh-known-hosts.nix
     ../../modules/base/git.nix
+    ../../modules/base/nixos-containers.nix
     ./lunarvim.nix
     ./syncthing2.nix
     ./synapse.nix
-    ./nixos-containers.nix
     ./traggo.nix
     ./caddy.nix
     ./ipv6.nix
