@@ -1,8 +1,10 @@
 {pkgs, ...}: {
   # 1. Force the mode creation on startup
   services.xserver.displayManager.sessionCommands = ''
-    # Create a 5120x1440 120Hz mode and add it to DP-3
-    ${pkgs.xorg.xrandr}/bin/xrandr --newmode "5120x1440_120" 966.00 5120 5168 5200 5360 1440 1443 1453 1502 +hsync -vsync
+    # Create a 5120x1440 120Hz mode and add it to DP-3, this is at the very limit of DisplayPort 1.4 without DSC
+    (Display Stream Compression), as this requires ~23.2Gbps which is close to the maximum bandwidth of ~25.9Gbps.
+    # This modeline has been calculated with: `nix-shell -p libxcvt --run "cvt -r 5120 1440 120"`
+    ${pkgs.xorg.xrandr}/bin/xrandr --newmode "5120x1440_120" 965.50  5120 5168 5200 5280  1440 1443 1453 1525 +hsync -vsync
     ${pkgs.xorg.xrandr}/bin/xrandr --addmode DP-3 "5120x1440_120"
   '';
 
@@ -55,6 +57,10 @@
             mode = "5120x1440_120";
             rate = "120.00";
           };
+        };
+        hooks.postswitch = {
+          # Force 'opRGB' Colorspace to override the driver's default 'Limited Range' (TV Mode) selection.
+          "fix-g9-colors" = "${pkgs.xorg.xrandr}/bin/xrandr --output DP-3 --set 'max bpc' 8 --set 'Colorspace' 'opRGB'";
         };
       };
     };
