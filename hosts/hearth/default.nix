@@ -24,6 +24,7 @@
     ./fish.nix
     ./nix-ld.nix
     ../../modules/base/nixos-containers.nix
+    ./vega56.nix
   ];
 
   nix = {
