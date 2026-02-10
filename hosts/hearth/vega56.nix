@@ -15,8 +15,8 @@
   #
   # The trade-off here is slightly increased power consumption and heat generation,
   # however the card is plenty able to cool itself.
-  services.udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="pci", DRIVER=="amdgpu", ATTR{power_dpm_force_performance_level}="manual"
-    ACTION=="add", SUBSYSTEM=="pci", DRIVER=="amdgpu", ATTR{pp_dpm_mclk}="1 2 3"
-  '';
+  #services.udev.extraRules = ''
+  #  ACTION=="add", SUBSYSTEM=="pci", DRIVER=="amdgpu", ATTR{power_dpm_force_performance_level}="manual"
+  #  ACTION=="add", SUBSYSTEM=="pci", DRIVER=="amdgpu", ATTR{pp_dpm_mclk}="1 2 3"
+  #'';
 }
