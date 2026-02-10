@@ -40,6 +40,10 @@
       url = "github:skeen/traggo/master";
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
     };
+    uboot-src = {
+      flake = false;
+      url = "github:Kwiboo/u-boot-rockchip/rk3xxx-2025.01";
+    };
   };
 
   outputs = {
@@ -49,6 +53,7 @@
   } @ inputs: {
     # https://kamadorueda.com/alejandra/
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+    formatter.aarch64-linux = nixpkgs.legacyPackages.aarch64-linux.alejandra;
 
     nixosConfigurations = {
       # Work laptop
@@ -68,6 +73,12 @@
         system = "x86_64-linux";
         specialArgs = inputs; # pass flake inputs to modules
         modules = [./hosts/stronghold];
+      };
+      # Home Media Server
+      granary = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = inputs; # pass flake inputs to modules
+        modules = [./hosts/granary];
       };
     };
   };
