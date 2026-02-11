@@ -6,29 +6,8 @@
   pkgs,
   secrets,
   nixpkgs-unstable,
-  uboot-src,
   ...
-}: let
-  uboot = pkgs.buildUBoot rec {
-    extraMakeFlags = [
-      "ROCKCHIP_TPL=${pkgs.rkbin}/bin/rk35/rk3566_ddr_1056MHz_v1.21.bin"
-    ];
-    extraMeta = {
-      platforms = ["aarch64-linux"];
-      license = pkgs.lib.licenses.unfreeRedistributableFirmware;
-    };
-    src = uboot-src;
-    version = uboot-src.rev;
-    defconfig = "odroid-m1s-rk3566_defconfig";
-    filesToInstall = [
-      "u-boot.bin"
-      "u-boot-rockchip.bin"
-      "idbloader.img"
-      "u-boot.itb"
-    ];
-    BL31 = "${pkgs.rkbin}/bin/rk35/rk3568_bl31_v1.44.elf";
-  };
-in rec {
+}: {
   nixpkgs.overlays = [
     (final: super: {
       makeModulesClosure = x:
@@ -62,13 +41,6 @@ in rec {
   hardware.deviceTree.enable = true;
   hardware.deviceTree.name = "rockchip/rk3566-odroid-m1s.dtb";
   system.stateVersion = "25.05";
-  sdImage = {
-    compressImage = false;
-    firmwareSize = 50;
-    populateFirmwareCommands = ''
-      cp ${uboot}/u-boot.bin firmware/
-    '';
-  };
   networking.hostName = "granary";
 
   services.openssh = {

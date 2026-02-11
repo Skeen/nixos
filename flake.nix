@@ -40,10 +40,6 @@
       url = "github:skeen/traggo/master";
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
     };
-    uboot-src = {
-      flake = false;
-      url = "github:Kwiboo/u-boot-rockchip/rk3xxx-2025.01";
-    };
   };
 
   outputs = {
@@ -75,6 +71,7 @@
         modules = [./hosts/stronghold];
       };
       # Home Media Server
+      # Bootstrapped using: https://github.com/Skeen/nixos-on-odroid-m1s
       granary = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         specialArgs = inputs; # pass flake inputs to modules
