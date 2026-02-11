@@ -9,21 +9,13 @@
   uboot-src,
   ...
 }: let
-  x86_64pkgs = import nixpkgs-unstable {
-    system = "x86_64-linux";
-    config.allowUnfree = true;
-  };
-  aarch64pkgs = import nixpkgs-unstable {
-    system = "aarch64-linux";
-    config.allowUnfree = true;
-  };
-  uboot = x86_64pkgs.pkgsCross.aarch64-multiplatform.buildUBoot rec {
+  uboot = pkgs.buildUBoot rec {
     extraMakeFlags = [
-      "ROCKCHIP_TPL=${aarch64pkgs.rkbin}/bin/rk35/rk3566_ddr_1056MHz_v1.21.bin"
+      "ROCKCHIP_TPL=${pkgs.rkbin}/bin/rk35/rk3566_ddr_1056MHz_v1.21.bin"
     ];
     extraMeta = {
       platforms = ["aarch64-linux"];
-      license = x86_64pkgs.lib.licenses.unfreeRedistributableFirmware;
+      license = pkgs.lib.licenses.unfreeRedistributableFirmware;
     };
     src = uboot-src;
     version = uboot-src.rev;
@@ -34,7 +26,7 @@
       "idbloader.img"
       "u-boot.itb"
     ];
-    BL31 = "${aarch64pkgs.rkbin}/bin/rk35/rk3568_bl31_v1.44.elf";
+    BL31 = "${pkgs.rkbin}/bin/rk35/rk3568_bl31_v1.44.elf";
   };
 in rec {
   nixpkgs.overlays = [
