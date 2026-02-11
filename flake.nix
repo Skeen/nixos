@@ -77,6 +77,13 @@
         specialArgs = inputs; # pass flake inputs to modules
         modules = [./hosts/granary];
       };
+      # NAS Server
+      # Bootstrapped using: https://github.com/Skeen/nixos-on-odroid-m1s
+      coffer = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = inputs; # pass flake inputs to modules
+        modules = [./hosts/coffer];
+      };
     };
   };
 }
