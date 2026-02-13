@@ -1,13 +1,4 @@
 {pkgs, ...}: {
-  # 1. Force the mode creation on startup
-  services.xserver.displayManager.sessionCommands = ''
-    # Create a 5120x1440 120Hz mode and add it to DP-3, this is at the very limit of DisplayPort 1.4 without DSC
-    (Display Stream Compression), as this requires ~23.2Gbps which is close to the maximum bandwidth of ~25.9Gbps.
-    # This modeline has been calculated with: `nix-shell -p libxcvt --run "cvt -r 5120 1440 120"`
-    ${pkgs.xorg.xrandr}/bin/xrandr --newmode "5120x1440_120" 965.50  5120 5168 5200 5280  1440 1443 1453 1525 +hsync -vsync
-    ${pkgs.xorg.xrandr}/bin/xrandr --addmode DP-3 "5120x1440_120"
-  '';
-
   # AutoRandr is a smart wrapper around xrandr for handling display configuration
   services.autorandr = {
     enable = true;
@@ -54,12 +45,23 @@
             enable = true;
             primary = true;
             position = "640x1080";
-            mode = "5120x1440_120";
+            mode = "5120x1440";
             rate = "120.00";
           };
         };
         hooks.postswitch = {
-          # Force 'opRGB' Colorspace to override the driver's default 'Limited Range' (TV Mode) selection.
+          # Force 'opRGB' colorspace to override the driver's default 'Limited Range' (TV Mode) selection.
+          #
+          # Force 8-bit colordepth to limit display bandwidth requirements.
+          # 5120x1440 @ 120Hz @ 8-bit consumes ~24.15 Gbps with blanking overhead.
+          # 5120x1440 @ 120Hz @ 10-bit consumes ~30.19 Gbps with blanking overhead.
+          #
+          # DisplayPort 1.4 without DSC (Display Stream Compression) has a maximum
+          # effective datarate of 25.92 Gbps, meaning only 8-bit color will fit.
+          #
+          # Previous to this approach an attempt at using reduced blanking to make the
+          # signal fit was attempted, but resulted in instability of the signal causing
+          # short-term signal drops / black screens.
           "fix-g9-colors" = "${pkgs.xorg.xrandr}/bin/xrandr --output DP-3 --set 'max bpc' 8 --set 'Colorspace' 'opRGB'";
         };
       };
