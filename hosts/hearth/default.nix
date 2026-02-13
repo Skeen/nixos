@@ -23,7 +23,6 @@
     ./podman.nix
     ./fish.nix
     ./nix-ld.nix
-    ./heroic.nix
     ../../modules/base/nixos-containers.nix
     ./vega56.nix
     ./vpn.nix

@@ -3,14 +3,7 @@
     "steam"
     "steam-original"
     "steam-run"
-    "steamcmd"
   ];
-
-  # Enable Graphics & 32-bit support (Critical for Wine/Proton)
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
-  };
 
   programs.steam = {
     enable = true;
