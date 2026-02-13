@@ -26,6 +26,7 @@
     ./heroic.nix
     ../../modules/base/nixos-containers.nix
     ./vega56.nix
+    ./vpn.nix
   ];
 
   nix = {
