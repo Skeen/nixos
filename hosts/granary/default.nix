@@ -26,6 +26,12 @@
     (import "${nixpkgs-unstable}/nixos/modules/installer/sd-card/sd-image-aarch64.nix")
   ];
 
+  environment.systemPackages = with pkgs; [
+    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #  wget
+    git
+  ];
+
   nix.package = pkgs.nixVersions.stable;
   nix.nixPath = ["nixpkgs=${nixpkgs-unstable}"];
   nix.extraOptions = ''
