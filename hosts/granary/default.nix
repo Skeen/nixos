@@ -32,11 +32,15 @@
     git
   ];
 
+  nix = {
+    settings = {
+      # Enable flakes
+      experimental-features = ["nix-command" "flakes"];
+    };
+  };
+
   nix.package = pkgs.nixVersions.stable;
   nix.nixPath = ["nixpkgs=${nixpkgs-unstable}"];
-  nix.extraOptions = ''
-    experimental-features = nix-command flakes
-  '';
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.supportedFilesystems = pkgs.lib.mkForce ["btrfs" "cifs" "f2fs" "jfs" "ntfs" "reiserfs" "vfat" "xfs" "ext2"];
   boot.kernelParams = ["debug" "console=ttyS2,1500000"];
