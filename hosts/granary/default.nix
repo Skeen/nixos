@@ -12,6 +12,7 @@
 
   imports = [
     ./hardware.nix
+    ./impermanence.nix
   ];
 
   environment.systemPackages = with pkgs; [

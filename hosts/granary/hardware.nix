@@ -25,10 +25,40 @@
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
 
-  fileSystems."/" = {
+  fileSystems."/" =
+    { device = "none";
+      fsType = "tmpfs";
+      options = ["defaults" "size=50%" "mode=755"]; # mode=755 so only root can write to those files
+    };
+
+  fileSystems."/nix" = {
       device = "/dev/disk/by-label/NIXOS_SD";
       neededForBoot = true;
       fsType = "ext4";
+  };
+
+  # Map the nested store to the standard /nix/store
+  fileSystems."/nix/store" = {
+    device = "/nix/nix/store";
+    fsType = "none";
+    options = [ "bind" ];
+    neededForBoot = true;
+  };
+
+  # Map the nested var (the DB) to the standard /nix/var
+  fileSystems."/nix/var" = {
+    device = "/nix/nix/var";
+    fsType = "none";
+    options = [ "bind" ];
+    neededForBoot = true;
+  };
+
+  # CRITICAL: Bind mount the physical boot folder (now at /nix/boot)
+  # to /boot so the bootloader installer can find and update it.
+  fileSystems."/boot" = {
+    device = "/nix/boot";
+    fsType = "none";
+    options = [ "bind" ];
   };
 
   swapDevices = [ ];
