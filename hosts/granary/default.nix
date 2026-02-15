@@ -8,22 +8,11 @@
   nixpkgs-unstable,
   ...
 }: {
-  nixpkgs.overlays = [
-    (final: super: {
-      makeModulesClosure = x:
-        super.makeModulesClosure (x // {allowMissing = true;});
-    })
-    (final: super: {
-      zfs = super.zfs.overrideAttrs (_: {
-        meta.platforms = [];
-      });
-    })
-  ];
-
   nixpkgs.hostPlatform = "aarch64-linux";
 
   imports = [
     (import "${nixpkgs-unstable}/nixos/modules/installer/sd-card/sd-image-aarch64.nix")
+    ./hardware.nix
   ];
 
   environment.systemPackages = with pkgs; [
@@ -44,12 +33,7 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.supportedFilesystems = pkgs.lib.mkForce ["btrfs" "cifs" "f2fs" "jfs" "ntfs" "reiserfs" "vfat" "xfs" "ext2"];
   boot.kernelParams = ["debug" "console=ttyS2,1500000"];
-  boot.initrd.availableKernelModules = [
-    "nvme"
-    "nvme-core"
-  ];
-  hardware.deviceTree.enable = true;
-  hardware.deviceTree.name = "rockchip/rk3566-odroid-m1s.dtb";
+
   system.stateVersion = "25.05";
   networking.hostName = "granary";
 
