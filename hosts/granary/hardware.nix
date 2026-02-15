@@ -15,7 +15,7 @@
   hardware.deviceTree.enable = true;
   hardware.deviceTree.name = "rockchip/rk3566-odroid-m1s.dtb";
 
-  boot.initrd.availableKernelModules = [ "nvme" "nvme" "nvme-core" ];
+  boot.initrd.availableKernelModules = [ "nvme" "nvme-core" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
