@@ -72,6 +72,8 @@
       };
       # Home Media Server
       # Bootstrapped using: https://github.com/Skeen/nixos-on-odroid-m1s
+      # After bootstrap, clone this repository and rebuild switch, then reboot
+      # After reboot, cleanup /nix/ from leftover files
       granary = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         specialArgs = inputs; # pass flake inputs to modules
@@ -79,6 +81,8 @@
       };
       # NAS Server
       # Bootstrapped using: https://github.com/Skeen/nixos-on-odroid-m1s
+      # After bootstrap, clone this repository and rebuild switch, then reboot
+      # After reboot, cleanup /nix/ from leftover files
       coffer = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         specialArgs = inputs; # pass flake inputs to modules
