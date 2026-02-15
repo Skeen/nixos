@@ -10,6 +10,8 @@
 }: {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
+    # Initialize standard ARM hardware drivers (USB, Network, etc.)
+    (modulesPath + "/profiles/all-hardware.nix")
   ];
 
   hardware.deviceTree.enable = true;
@@ -19,6 +21,9 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
+
+  boot.loader.grub.enable = false;
+  boot.loader.generic-extlinux-compatible.enable = true;
 
   fileSystems."/" = {
       device = "/dev/disk/by-label/NIXOS_SD";
