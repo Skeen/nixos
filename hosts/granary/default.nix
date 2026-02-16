@@ -13,6 +13,8 @@
   imports = [
     ./hardware.nix
     ./impermanence.nix
+    ./home-manager.nix
+    ../../modules/base/git.nix
   ];
 
   environment.systemPackages = with pkgs; [
@@ -41,4 +43,14 @@
     settings.PermitRootLogin = "yes";
   };
   users.extraUsers.root.initialPassword = pkgs.lib.mkForce "odroid";
+
+  users.users.emil = {
+    isNormalUser = true;
+    description = "Emil Madsen";
+    extraGroups = ["networkmanager" "wheel"];
+    packages = with pkgs; [
+      #  thunderbird
+    ];
+    initialPassword = pkgs.lib.mkForce "odroid";
+  };
 }
