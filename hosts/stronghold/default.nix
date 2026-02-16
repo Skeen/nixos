@@ -14,7 +14,7 @@
     ./home-manager.nix
     ./shell.nix
     ./agenix.nix
-    ./ssh.nix
+    ../../modules/server/ssh.nix
     ./ssh-key.nix
     ./ssh-known-hosts.nix
     ../../modules/base/git.nix
