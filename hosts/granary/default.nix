@@ -15,6 +15,7 @@
     ./impermanence.nix
     ./home-manager.nix
     ../../modules/base/git.nix
+    ../../modules/server/ssh.nix
   ];
 
   environment.systemPackages = with pkgs; [
@@ -38,10 +39,6 @@
   system.stateVersion = "25.05";
   networking.hostName = "granary";
 
-  services.openssh = {
-    enable = true;
-    settings.PermitRootLogin = "yes";
-  };
   users.extraUsers.root.initialPassword = pkgs.lib.mkForce "odroid";
 
   users.users.emil = {
@@ -52,5 +49,14 @@
       #  thunderbird
     ];
     initialPassword = pkgs.lib.mkForce "odroid";
+  };
+
+  environment.persistence."/nix/persist" = {
+    users.emil = {
+      files = [
+        "/.ssh/id_ed25519.pub"
+        "/.ssh/id_ed25519"
+      ];
+    };
   };
 }
