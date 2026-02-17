@@ -11,6 +11,7 @@
   nixpkgs.hostPlatform = "aarch64-linux";
 
   imports = [
+    ./agenix.nix
     ./hardware.nix
     ./impermanence.nix
     ./home-manager.nix
@@ -39,7 +40,10 @@
   system.stateVersion = "25.05";
   networking.hostName = "granary";
 
-  users.extraUsers.root.initialPassword = pkgs.lib.mkForce "odroid";
+  users.mutableUsers = false;
+  users.users.root = {
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
+  };
 
   users.users.emil = {
     isNormalUser = true;
@@ -48,7 +52,7 @@
     packages = with pkgs; [
       #  thunderbird
     ];
-    initialPassword = pkgs.lib.mkForce "odroid";
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
   };
 
   environment.persistence."/nix/persist" = {
@@ -58,5 +62,12 @@
         "/.ssh/id_ed25519"
       ];
     };
+  };
+
+  age.secrets.users-hashed-password-file = {
+    file = "${secrets}/secrets/users-hashed-password-file.age";
+    mode = "400";
+    owner = "root";
+    group = "root";
   };
 }
