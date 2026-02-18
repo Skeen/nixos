@@ -1,8 +1,8 @@
 { ... }: {
   # HTTP(s)
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  networking.firewall.allowedTCPPorts = [ 80 443 8448 ];
   # Needed for QUIC / HTTP/3
-  networking.firewall.allowedUDPPorts = [ 443 ];
+  networking.firewall.allowedUDPPorts = [ 443 8448 ];
 
   services.caddy = {
     enable = true;
@@ -19,24 +19,24 @@
 #    # TODO: Move synapse to this server
     virtualHosts."awful.engineer:8448" = {
       extraConfig = ''
-        reverse_proxy /_matrix/* http://65.21.186.37:8448 {
+        reverse_proxy /_matrix/* http://192.168.100.13:8008 {
           header_up Host {host}
         }
       '';
     };
     virtualHosts."matrix.awful.engineer" = {
       extraConfig = ''
-        reverse_proxy /_matrix/* http://65.21.186.37 {
+        reverse_proxy /_matrix/* http://192.168.100.13:8008 {
           header_up Host {host}
         }
-        reverse_proxy /_synapse/client/* http://65.21.186.37 {
+        reverse_proxy /_synapse/client/* http://192.168.100.13:8008 {
           header_up Host {host}
         }
       '';
     };
     virtualHosts."matrix.awful.engineer:8448" = {
       extraConfig = ''
-        reverse_proxy /_matrix/* http://65.21.186.37:8448 {
+        reverse_proxy /_matrix/* http://192.168.100.13:8008 {
           header_up Host {host}
         }
       '';

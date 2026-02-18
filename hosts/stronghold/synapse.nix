@@ -61,6 +61,13 @@ in {
     owner = "root";
     group = "root";
   };
+  # Synapse: Secrets
+  age.secrets.stronghold-synapse-secrets-yaml-file = {
+    file = "${secrets}/secrets/stronghold-synapse-secrets.yaml.age";
+    mode = "400";
+    owner = "matrix-synapse";
+    group = "matrix-synapse";
+  };
 
   containers.synapse = let
     synapse_data_dir = "/var/lib/matrix-synapse";
@@ -69,6 +76,7 @@ in {
 
     restic_secret_b2 = "/etc/synapse_backblaze.env";
     restic_secret_enc = "/etc/synapse_restic.pwd";
+    synapse_secret_yaml = "/etc/synapse_secret.yaml";
   in {
     autoStart = true;
 
@@ -102,6 +110,10 @@ in {
         hostPath = config.age.secrets.stronghold-synapse-restic-password-file.path;
         isReadOnly = true;
       };
+      "${synapse_secret_yaml}" = {
+        hostPath = config.age.secrets.stronghold-synapse-secrets-yaml-file.path;
+        isReadOnly = true;
+      };
     };
 
     config = {
@@ -113,12 +125,11 @@ in {
 
       # Open the container firewall for:
       networking.firewall.allowedTCPPorts = [
-        # The ClientAPI
+        # The ClientAPI and Federation API
         8008
+        # 8448
         # Sliding Sync Proxy (MSC3575)
         # 8009
-        # The Federation API
-        8448
       ];
 
       services.matrix-synapse = {
@@ -130,39 +141,30 @@ in {
         # https://element-hq.github.io/synapse/latest/usage/configuration/index.html
         settings = {
           # The server_name name appears at the end of usernames and room addresses
-          # created on the server. It should NOT be a matrix-specific subdomain
-          # such as matrix.example.com. Caddy *does* however serve synapse on
-          # matrix.awful.engineer (rather than awful.engineer directly). This is
-          # done through /.well-known/matrix delegation.
+          # created on the server. It generally should NOT be a matrix-specific
+          # subdomain such as matrix.example.com, however in our case it is, since it
+          # was misconfigured originally and is not easily corrected.
+          # Caddy *does* however serve synapse on matrix.awful.engineer
+          # (rather than awful.engineer directly). This is done through
+          # /.well-known/matrix delegation.
           # https://element-hq.github.io/synapse/latest/delegate.html.
-          server_name = "awful.engineer";
+          server_name = "matrix.awful.engineer";
           # The public-facing base URL that clients use to access this Homeserver.
           # This is the same URL a user might enter into the 'Custom Homeserver
           # URL' field on their client. If you use Synapse with a reverse proxy,
           # this should be the URL to reach Synapse via the proxy.
           public_baseurl = "https://matrix.awful.engineer";
           listeners = [
-            # Enable client API
+            # Enable client API and Federation API
             {
+              bind_addresses = [ "0.0.0.0" ];
               port = 8008;
               type = "http";
               tls = false;
               x_forwarded = true;
               resources = [
                 {
-                  names = ["client"];
-                }
-              ];
-            }
-            # Enable Federation API
-            {
-              port = 8448;
-              type = "http";
-              tls = false;
-              x_forwarded = true;
-              resources = [
-                {
-                  names = ["federation"];
+                  names = ["client" "federation"];
                 }
               ];
             }
@@ -174,11 +176,19 @@ in {
           # apparently, the matrix protocol isn't distributed at all and nothing
           # works if you don't do this.
           # trusted_key_servers = [];
+
+          enable_registration = false;
+          admin_contact = "mailto:synapse_admin_contac.endearing574@passmail.net";
         };
+
+        extraConfigFiles = [
+          synapse_secret_yaml 
+        ];
       };
 
       services.postgresql = {
         enable = true;
+        package = pkgs.postgresql_14;
 
         dataDir = postgres_data_dir;
 
