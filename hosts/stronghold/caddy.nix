@@ -16,7 +16,6 @@
       '';
     };
 
-#    # TODO: Move synapse to this server
     virtualHosts."awful.engineer:8448" = {
       extraConfig = ''
         reverse_proxy /_matrix/* http://192.168.100.13:8008 {
@@ -51,6 +50,13 @@
     virtualHosts."awful.engineer" = {
       extraConfig = ''
         respond `{"hello": "world"}`
+      '';
+    };
+
+    virtualHosts."jellyfin.awful.engineer" = {
+      extraConfig = ''
+        # Proxy traffic to Granary's wghub IP
+        reverse_proxy 192.168.50.2:8096
       '';
     };
   };
