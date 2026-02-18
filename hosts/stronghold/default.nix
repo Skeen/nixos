@@ -25,6 +25,7 @@
     ./traggo.nix
     ./caddy.nix
     ./ipv6.nix
+    ./wghub.nix
   ];
 
   nix = {
