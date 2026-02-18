@@ -18,6 +18,7 @@
     ../../modules/base/git.nix
     ../../modules/server/ssh.nix
     ./wghub.nix
+    ./jellyfin.nix
   ];
 
   environment.systemPackages = with pkgs; [
