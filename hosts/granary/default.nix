@@ -20,6 +20,7 @@
     ./wghub.nix
     ./jellyfin.nix
     ./ipv6.nix
+    ./m1s-ups.nix
   ];
 
   environment.systemPackages = with pkgs; [

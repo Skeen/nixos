@@ -40,6 +40,10 @@
       url = "github:skeen/traggo/master";
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
     };
+    m1s-ups = {
+      url = "github:skeen/m1s_ups-nix/master";
+      inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
+    };
   };
 
   outputs = {
