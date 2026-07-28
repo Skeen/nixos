@@ -19,6 +19,7 @@
     ../../modules/server/ssh.nix
     ./wghub.nix
     ./jellyfin.nix
+    ./ipv6.nix
   ];
 
   environment.systemPackages = with pkgs; [
