@@ -7,6 +7,10 @@
   secrets,
   ...
 }: {
+  # Enable tailscale temporarily
+  # TODO: Remove me
+  services.tailscale.enable = true;
+
   imports = [
     # Include the results of the hardware scan.
     ./hardware.nix
@@ -35,13 +39,22 @@
     };
   };
 
+  boot.swraid = {
+    enable = true;
+    mdadmConf = ''
+      MAILADDR root
+      ARRAY /dev/md0 metadata=1.2 UUID=cff45f8b:2f1b8b55:3fb8360b:27fc9fc4
+    '';
+  };
+
   # Bootloader.
   boot = {
     loader = {
       efi.canTouchEfiVariables = true;
       systemd-boot.enable = true;
     };
-    initrd.luks.devices.crypted.device = "/dev/disk/by-label/crypted";
+    initrd.systemd.enable = true;
+    initrd.luks.devices.crypted.device = "/dev/disk/by-uuid/a148c81a-cb66-4069-bb7f-ac48a2e501a7";
   };
 
   networking.hostName = "hearth"; # Define your hostname.
