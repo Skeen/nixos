@@ -54,7 +54,7 @@
       systemd-boot.enable = true;
     };
     initrd.systemd.enable = true;
-    initrd.luks.devices.crypted.device = "/dev/disk/by-uuid/a148c81a-cb66-4069-bb7f-ac48a2e501a7";
+    initrd.luks.devices.crypted.device = "/dev/md0";
   };
 
   networking.hostName = "hearth"; # Define your hostname.

@@ -24,14 +24,20 @@
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/12CE-A600";
+    { device = "/dev/disk/by-label/BOOT";
+      fsType = "vfat";
+      options = [ "fmask=0077" "dmask=0077" ];
+    };
+
+  fileSystems."/boot2" =
+    { device = "/dev/disk/by-label/BOOT2";
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
     };
 
   fileSystems."/nix" =
     { 
-      device = "/dev/disk/by-uuid/51c9adc7-de95-45bd-ab66-11e617649f7f";
+      device = "/dev/disk/by-label/nix";
       neededForBoot = true;
       fsType = "ext4";
     };
