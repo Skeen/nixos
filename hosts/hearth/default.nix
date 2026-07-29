@@ -39,22 +39,29 @@
     };
   };
 
-  boot.swraid = {
-    enable = true;
-    mdadmConf = ''
-      MAILADDR root
-      ARRAY /dev/md0 metadata=1.2 UUID=cff45f8b:2f1b8b55:3fb8360b:27fc9fc4
-    '';
-  };
-
-  # Bootloader.
+  # Bootloader
   boot = {
-    loader = {
-      efi.canTouchEfiVariables = true;
-      systemd-boot.enable = true;
-    };
     initrd.systemd.enable = true;
     initrd.luks.devices.crypted.device = "/dev/md0";
+
+    # Boot disk is on /dev/md0
+    swraid = {
+      enable = true;
+      mdadmConf = ''
+        MAILADDR root
+        ARRAY /dev/md0 metadata=1.2 UUID=cff45f8b:2f1b8b55:3fb8360b:27fc9fc4
+      '';
+    };
+
+    loader.grub = {
+      enable = true;
+      efiSupport = true;
+      efiInstallAsRemovable = true;
+      mirroredBoots = [
+        { devices = [ "nodev" ]; path = "/boot";  }
+        { devices = [ "nodev" ]; path = "/boot2"; }
+      ];
+    };
   };
 
   networking.hostName = "hearth"; # Define your hostname.
