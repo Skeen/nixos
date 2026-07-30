@@ -120,7 +120,8 @@ source.
 3. Reconstruct the host key into an `--extra-files` tree:
    ```fish
    set extra (mktemp -d)
-   install -d -m 700 "$extra/nix/persist/etc/ssh"
+   mkdir -p "$extra/nix/persist/etc/ssh"
+   chmod 755 "$extra/nix/persist/etc/ssh"
    agenix -d "$HOST-ssh-host-key.age" -i "$AGE_KEY_FILE" \
      > "$extra/nix/persist/etc/ssh/ssh_host_ed25519_key"
    chmod 600 "$extra/nix/persist/etc/ssh/ssh_host_ed25519_key"
