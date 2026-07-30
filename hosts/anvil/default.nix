@@ -42,7 +42,7 @@
   networking.networkmanager.ensureProfiles.profiles = {
     "home-wifi" = {
       connection = {
-        id = "TCHSVCZ3RP";
+        id = "FRITZ!Box 6670 FM";
         uuid = "4fece54c-fc57-428f-afbc-5b6003d9723e";
         type = "wifi";
         interface-name = "wlp2s0";
@@ -51,7 +51,7 @@
 
       wifi = {
         mode = "infrastructure";
-        ssid = "TCHSVCZ3RP";
+        ssid = "FRITZ!Box 6670 FM";
       };
 
       "wifi-security" = {
