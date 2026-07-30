@@ -1,127 +1,157 @@
-# Getting started
+# NixOS
 
-1. Download the Graphical ISO image from: https://nixos.org/download/
+Flake-based multi-host NixOS.
 
-2. Put the ISO image on a USB drive and boot into the live CD
+Secrets live in the private [`nixos-secret`](https://github.com/Skeen/nixos-secret)
+input, encrypted with [agenix](https://github.com/ryantm/agenix) using each host's ssh
+host key.
 
-3. Using the booted live environment, configure the disk using `parted`:
+## Refreshing
 
-```bash
-#!/usr/bin/env bash
-set -x
-
-IDENTIFIER="/dev/sda"
-
-# Create partition table
-parted "${IDENTIFIER}" -- mklabel gpt
-
-# Create /boot partition
-parted "${IDENTIFIER}" -- mkpart ESP fat32 1MiB 1024MiB
-parted "${IDENTIFIER}" -- set 1 esp on
-
-# Create /nix partition
-parted "${IDENTIFIER}" -- mkpart primary 1024MiB 100%
-
-# Create and open LUKS-encrypted container
-cryptsetup --type=luks2 luksFormat --label=crypted "${IDENTIFIER}2"
-cryptsetup open "${IDENTIFIER}2" crypted
-
-# Create LVM volume group
-pvcreate /dev/mapper/crypted
-vgcreate vg /dev/mapper/crypted
-
-# Create root logical volume
-lvcreate -l 100%FREE vg -n root
-
-# Format partitions
-mkfs.fat -F32 -n BOOT "${IDENTIFIER}1"
-mkfs.ext4 -L nix /dev/vg/root
-```
-The result should be the following (`lsblk -f`):
-```
-NAME          FSTYPE      FSVER            LABEL
-sda
-├─sda1        vfat        FAT32            BOOT
-└─sda2        crypto_LUKS 2                crypted
-  └─crypted   LVM2_member LVM2 001
-    └─vg-root ext4        1.0              nix
-```
-
-4. Mount the newly created partitions:
-
-```bash
-# Mount tmpfs to /mnt
-mount -t tmpfs none /mnt
-# Mount our boot disk to /mnt/boot
-mount --mkdir /dev/disk/by-label/BOOT /mnt/boot
-# Mount our nix disk to /mnt/nix
-mount --mkdir /dev/disk/by-label/nix /mnt/nix
-# Create a folder for files we wish to persist
-mkdir -p /mnt/nix/persist/
-```
-
-5. Generate a host-key for the system
-
-```bash
-mkdir -p /mnt/nix/persist/etc/ssh/
-ssh-keygen -A -f /mnt/nix/persist
-```
-Then extract the public key to an existing machine:
-```
-cat /mnt/nix/persist/etc/ssh/ssh_host_ed25519_key.pub
-```
-This could be done using netcat (`nc`) or similar.
-
-6. Generate the NixOS hardware-config and export it to an existing machine:
-```bash
-nixos-generate-config --root /mnt --show-hardware-config
-```
-
-7. Generate an SSH key on the machine
-
-```bash
-ssh-keygen -t ed25519
-```
-Then extract the public key to an existing machine:
-```bash
-cat /root/.ssh/id_ed25519.pub
-```
-
-8. Switch to an already trusted machine
-
-9. Decide on a hostname for the new machine
-
-10. Rekey all secrets in the `nixos-secret` repository using the host-key (from 5):
-
-See the README on https://github.com/Skeen/nixos-secret for details
-
-11. Prepare configuration for the new machine using the hardware config (from 6):
-
-TODO: FINISH THIS
-
-12. Add the SSH key (From 7) to GitHub allowing the new machine to clone:
-
-```bash
-cd /mnt/nix
-git clone git@github.com:Skeen/nixos.git
-git clone git@github.com:Skeen/nixos-secret.git
-```
-
-13. Install NixOS using the prepared configuration
-
-```bash
-nixos-install --no-root-passwd --flake .#chosen-hostname
-```
-
-# Refreshing
 ```bash
 sudo nixos-rebuild switch --flake . --override-input secrets ./../nixos-secret/
 ```
 
-# Running on virt-manager
+## Installing
 
-Make sure to install `ovmf` and configure the VM for UEFI boot.
+Two machines are involved:
+- The **source**: an existing working NixOS machine you drive the install from,
+  with the `nixos` and `nixos-secret` repositories checked out and the NixOS
+  recovery age key (from Proton Pass) available.
+- The **target**: the machine being installed, reachable from the source over
+  SSH. It will be wiped during install.
 
-# References
+### Prepare the target
 
-This repository and its configuration is heavily inspired by: https://git.caspervk.net/caspervk/nixos
+1. Boot the target into any Linux with root SSH access.
+
+   The [NixOS live ISO](https://nixos.org/download/) on a USB stick is the easy
+   choice, and provides `nixos-generate-config` needed when adding a new host.
+
+2. Ensure that it's reachable from the **source**.
+
+   On the NixOS live ISO, set a root password so SSH works (`sudo passwd root`).
+
+3. Note its address (or provide one yourself in the next step):
+   ```bash
+   ip addr
+   ```
+
+This concludes preparing the target; leave it running.
+
+The rest of the instructions happen on the source machine.
+
+### Prepare the source
+
+1. Set the target's address from the previous section:
+   ```fish
+   set TARGET root@192.168.1.50
+   ```
+
+2. Read the NixOS recovery key (from Proton Pass) into a temporary file:
+   ```fish
+   set AGE_KEY_FILE (mktemp); read -s > $AGE_KEY_FILE
+   ```
+
+### Adding a new host
+
+If you are reinstalling a host already in `flake.nix`, skip this section.
+
+1. Pick a name for the new host and set it (the flake attribute):
+   ```fish
+   set HOST <name>
+   ```
+
+2. Create `hosts/$HOST/` by copying an existing host, and register it in
+   `flake.nix`.
+
+3. Pull the target's disk id and hardware config into it (disko owns the
+   filesystems, so exclude them):
+   ```fish
+   ssh $TARGET ls -l /dev/disk/by-id
+   ssh $TARGET nixos-generate-config --no-filesystems --show-hardware-config \
+     > hosts/$HOST/hardware.nix
+   ```
+   Set the disk in `disko.nix` to the by-id path.
+
+4. Generate the host key and print its public half:
+   ```fish
+   set tmp (mktemp -d)
+   ssh-keygen -t ed25519 -N "" -C "root@$HOST" -f "$tmp/ssh_host_ed25519_key"
+   cat "$tmp/ssh_host_ed25519_key.pub"
+   ```
+
+5. Navigate to the secret checkout (where `secrets.nix` lives).
+
+6. Add the host to `secrets.nix` - put it in the `let` block (and `all`), then
+   declare its rules:
+   ```nix
+   <host> = "<the .pub printed above>";
+   "<host>-ssh-host-key.age" = [];            # recovery-only backup
+   "<host>-luks-passphrase.age" = [<host>];   # encrypted hosts only
+   ```
+   Import the private key (paste `$tmp/ssh_host_ed25519_key` into the editor),
+   create the passphrase, rekey, and push:
+   ```fish
+   agenix -e "$HOST-ssh-host-key.age"
+   agenix -e "$HOST-luks-passphrase.age"
+   agenix -r -i "$AGE_KEY_FILE"
+   git add -A
+   git commit -m "feat($HOST): add luks and ssh-host-key for nixos-anywhere bootstrap"
+   git push
+   ```
+
+The new host is now a first-class citizen, its configuration and secrets
+indistinguishable from any existing host's.
+
+### Installing a host
+
+(Re)installs a host already in `flake.nix` using
+[`nixos-anywhere`](https://github.com/nix-community/nixos-anywhere) from the
+source.
+
+1. Set `HOST` to the flake attribute you want to deploy:
+   ```fish
+   set HOST anvil
+   ```
+
+2. Navigate to the secret checkout (where `secrets.nix` lives).
+
+3. Reconstruct the host key into an `--extra-files` tree:
+   ```fish
+   set extra (mktemp -d)
+   install -d -m 700 "$extra/nix/persist/etc/ssh"
+   agenix -d "$HOST-ssh-host-key.age" -i "$AGE_KEY_FILE" \
+     > "$extra/nix/persist/etc/ssh/ssh_host_ed25519_key"
+   chmod 600 "$extra/nix/persist/etc/ssh/ssh_host_ed25519_key"
+   ssh-keygen -y -f "$extra/nix/persist/etc/ssh/ssh_host_ed25519_key" \
+     > "$extra/nix/persist/etc/ssh/ssh_host_ed25519_key.pub"
+   ```
+
+4. Encrypted hosts only - decrypt the LUKS passphrase (remote path must match
+   `passwordFile` in the host's `disko.nix`):
+   ```fish
+   agenix -d "$HOST-luks-passphrase.age" -i "$AGE_KEY_FILE" > /tmp/luks.key
+   ```
+
+5. Return to the nixos repo, build against the secret checkout, and deploy:
+   ```fish
+   set disko (nix build --no-link --print-out-paths \
+     ".#nixosConfigurations.$HOST.config.system.build.diskoScript" \
+     --override-input secrets ../nixos-secret)
+   set top (nix build --no-link --print-out-paths \
+     ".#nixosConfigurations.$HOST.config.system.build.toplevel" \
+     --override-input secrets ../nixos-secret)
+
+   nix run github:nix-community/nixos-anywhere -- \
+     --store-paths "$disko" "$top" \
+     --disk-encryption-keys /tmp/luks.key /tmp/luks.key \
+     --extra-files "$extra" \
+     --target-host "$TARGET"
+   ```
+
+Drop `--disk-encryption-keys` for unencrypted hosts.
+
+## References
+
+Heavily inspired by: https://git.caspervk.net/caspervk/nixos
