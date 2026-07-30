@@ -21,6 +21,9 @@
     settings = {
       # Enable flakes
       experimental-features = ["nix-command" "flakes"];
+      # Allow wheel users (emil) to push unsigned store paths, so anvil can be
+      # deployed remotely from hearth via `nixos-rebuild --target-host`.
+      trusted-users = ["@wheel"];
     };
   };
 
