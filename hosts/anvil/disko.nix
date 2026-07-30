@@ -58,6 +58,9 @@
                 name = "crypted"; # -> /dev/mapper/crypted, matches the rollback service below
                 # cryptsetup defaults to LUKS2, but be explicit about it.
                 extraFormatArgs = ["--type" "luks2"];
+                # Passphrase supplied at install time via `nixos-anywhere
+                # --disk-encryption-keys`; typed in at every boot thereafter.
+                passwordFile = "/tmp/luks.key";
                 settings = {
                   # SSDs benefit from TRIM being passed through to the disk.
                   # Note: this leaks which blocks are in use; acceptable here.
