@@ -11,6 +11,7 @@
     # Include the results of the hardware scan.
     ./hardware.nix
     ./nixos-hardware.nix
+    ./tuxedo.nix
     ./disko.nix
     ./impermanence.nix
     ./home-manager.nix
