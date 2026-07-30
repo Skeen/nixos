@@ -12,6 +12,14 @@ host key.
 sudo nixos-rebuild switch --flake . --override-input secrets ./../nixos-secret/
 ```
 
+### Remote
+
+From another host (e.g. anvil from hearth):
+```bash
+nixos-rebuild switch --flake .#anvil --target-host emil@192.168.178.145 \
+  --use-remote-sudo --override-input secrets ../nixos-secret
+```
+
 ## Installing
 
 Two machines are involved:
