@@ -14,6 +14,7 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware.nix
+    ./nixos-hardware.nix
     ./impermanence.nix
     ./home-manager.nix
     ./agenix.nix
