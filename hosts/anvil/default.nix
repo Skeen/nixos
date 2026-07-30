@@ -14,6 +14,7 @@
     ./impermanence.nix
     ./home-manager.nix
     ./agenix.nix
+    ../../modules/server/ssh.nix
   ];
 
   nix = {
