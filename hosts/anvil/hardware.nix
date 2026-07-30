@@ -17,23 +17,10 @@
   boot.kernelModules = ["kvm-amd"];
   boot.extraModulePackages = [];
 
-  boot.initrd.luks.devices."luks-02fa669f-2ccf-457b-ae20-b3f477ce256f".device = "/dev/disk/by-uuid/02fa669f-2ccf-457b-ae20-b3f477ce256f";
-
-  fileSystems."/" = {
-    device = "none";
-    fsType = "tmpfs";
-    options = ["defaults" "size=50%" "mode=755"]; # mode=755 so only root can write to those files
-  };
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/934A-4EE1";
-    fsType = "vfat";
-    options = ["fmask=0077" "dmask=0077"];
-  };
-  fileSystems."/nix" = {
-    device = "/dev/disk/by-uuid/d0fc8dde-2a67-4746-92fd-41434aaee38b";
-    neededForBoot = true;
-    fsType = "ext4";
-  };
+  # The disk layout (partitions, LUKS2, btrfs subvolumes and their mounts) is
+  # declared in ./disko.nix, which generates the boot.initrd.luks and
+  # fileSystems configuration. It intentionally lives outside this generated
+  # file so nixos-generate-config cannot clobber it.
 
   swapDevices = [];
 

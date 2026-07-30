@@ -14,6 +14,10 @@
     impermanence = {
       url = "github:nix-community/impermanence";
     };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
+    };
     agenix = {
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system

@@ -25,6 +25,26 @@
         "type": "github"
       }
     },
+    "disko": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781152676,
+        "narHash": "sha256-RxWs5ND31KzTG7wvMM+PMfUjyNpmIEr999lqNARaM5o=",
+        "owner": "nix-community",
+        "repo": "disko",
+        "rev": "ff8702b4de27f72b4c78573dfb89ec74e36abdf1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "disko",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems_2"
@@ -115,6 +135,44 @@
       "original": {
         "owner": "nix-community",
         "repo": "impermanence",
+        "type": "github"
+      }
+    },
+    "m1s-ups": {
+      "inputs": {
+        "m1s-ups-script": "m1s-ups-script",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785269436,
+        "narHash": "sha256-pxtEqFusjHXfCXCIVjLI6uyZrkCKcdtcraz2U1vjs3U=",
+        "owner": "skeen",
+        "repo": "m1s_ups-nix",
+        "rev": "8726e7b44dbe20be113d66f06f73dfb45b447e2a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "skeen",
+        "ref": "master",
+        "repo": "m1s_ups-nix",
+        "type": "github"
+      }
+    },
+    "m1s-ups-script": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785269160,
+        "narHash": "sha256-s5+SnRbdtZ0bUENGXcPIuCztJFxqVdwG5YKdoxtPP3A=",
+        "owner": "Skeen",
+        "repo": "m1s_ups",
+        "rev": "556f133bf58cfa60db380b0af58f07b30e591b9c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Skeen",
+        "repo": "m1s_ups",
         "type": "github"
       }
     },
@@ -234,9 +292,11 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "disko": "disko",
         "home-manager": "home-manager",
         "home-manager-unstable": "home-manager-unstable",
         "impermanence": "impermanence",
+        "m1s-ups": "m1s-ups",
         "nix-index-database": "nix-index-database",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
