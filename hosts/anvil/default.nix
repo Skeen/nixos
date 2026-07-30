@@ -10,6 +10,7 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware.nix
+    ./nixos-hardware.nix
     ./disko.nix
     ./impermanence.nix
     ./home-manager.nix

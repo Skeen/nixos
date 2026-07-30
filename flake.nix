@@ -14,6 +14,9 @@
     impermanence = {
       url = "github:nix-community/impermanence";
     };
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware/master";
+    };
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
