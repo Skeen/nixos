@@ -1,0 +1,28 @@
+{pkgs, ...}: {
+  # AutoRandr is a smart wrapper around xrandr for handling display configuration
+  services.autorandr = {
+    enable = true;
+
+    profiles = {
+      # Laptop panel only. Add a "docked" profile once external monitors are used.
+      "mobile" = {
+        # Fingerprint produced using `autorandr --fingerprint`
+        # NOTE: This should be aligned with xfce/background.nix
+        fingerprint = {
+          "eDP-1-0" = "00ffffffffffff0009e5550d0000000026220104b522167807a5f5a5544ba1260d505400000001010101010101010101010101010101606c00a0a04064603020660059d71000001a000000000000000000000000000000000000000000fe00424f45204e4a0a202020202020000000fc004e4531363051444d2d4e5a4c0a02ec02032400e3058000e60605016a6a48741a000003513cf000006a486a482c01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c27020790200220028bf2a1585ff099f002f001f003f06630005000500ffee1085ff099f002f001f003f066300050005002b00122700782b0100270064ef00002700303b000021011d770d6a08000a400688567a54b444a16ad20d023554d05fd05f003813782e0006404ed05fd05f250109bf2a15bf2a153c2c8100000000c190";
+        };
+        config = {
+          "eDP-1-0" = {
+            enable = true;
+            primary = true;
+            position = "0x0";
+            mode = "2560x1600";
+            rate = "300.00";
+          };
+        };
+      };
+    };
+  };
+
+  environment.systemPackages = [pkgs.autorandr];
+}

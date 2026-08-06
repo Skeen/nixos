@@ -16,6 +16,10 @@
   # GPU
   # https://wiki.nixos.org/wiki/NVIDIA
   hardware.nvidia = {
+    # Dynamic Boost shifts the power budget between the CPU and the dGPU under
+    # load. Enables the nvidia-powerd daemon; check `systemctl status
+    # nvidia-powerd` to confirm the laptop actually supports it.
+    dynamicBoost.enable = true;
     prime = {
       amdgpuBusId = "PCI:6:0:0";
       nvidiaBusId = "PCI:1:0:0";

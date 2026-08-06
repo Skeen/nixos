@@ -16,6 +16,8 @@
     ./impermanence.nix
     ./home-manager.nix
     ./agenix.nix
+    ./monitors.nix
+    ./xfce/default.nix
     ../../modules/server/ssh.nix
   ];
 
