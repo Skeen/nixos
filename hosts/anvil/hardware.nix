@@ -16,6 +16,8 @@
   boot.initrd.kernelModules = [];
   boot.kernelModules = ["kvm-amd"];
   boot.extraModulePackages = [];
+  boot.kernelParams = [ "amdgpu.dcdebugmask=0x10" "amdgpu.sg_display=0" ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # The disk layout (partitions, LUKS2, btrfs subvolumes and their mounts) is
   # declared in ./disko.nix, which generates the boot.initrd.luks and
