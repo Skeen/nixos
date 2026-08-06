@@ -16,6 +16,7 @@
     ./impermanence.nix
     ./home-manager.nix
     ./agenix.nix
+    ../../modules/base/git.nix
     ../../modules/server/ssh.nix
   ];
 
