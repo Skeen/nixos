@@ -46,6 +46,7 @@
   networking.networkmanager.enable = true;
   networking.networkmanager.ensureProfiles.environmentFiles = [
     config.age.secrets.home-wifi-password-file.path
+    config.age.secrets.work-wifi-password-file.path
   ];
   networking.networkmanager.ensureProfiles.profiles = {
     "home-wifi" = {
@@ -66,6 +67,36 @@
         key-mgmt = "wpa-psk";
         auth-alg = "open";
         psk = "$HOME_WIFI_PSK";
+      };
+
+      ipv4 = {
+        method = "auto";
+      };
+
+      ipv6 = {
+        addr-gen-mode = "default";
+        method = "auto";
+      };
+    };
+
+    "work-wifi" = {
+      connection = {
+        id = "Magenta-Darknet";
+        uuid = "92d71a0d-3128-444a-b052-21ea42c5384c";
+        type = "wifi";
+        interface-name = "wlp2s0";
+        autoconnect = true;
+      };
+
+      wifi = {
+        mode = "infrastructure";
+        ssid = "Magenta-Darknet";
+      };
+
+      "wifi-security" = {
+        key-mgmt = "wpa-psk";
+        auth-alg = "open";
+        psk = "$WORK_WIFI_PSK";
       };
 
       ipv4 = {
@@ -219,6 +250,13 @@
 
   age.secrets.home-wifi-password-file = {
     file = "${secrets}/secrets/home-wifi-password-file.env.age";
+    mode = "400";
+    owner = "root";
+    group = "root";
+  };
+
+  age.secrets.work-wifi-password-file = {
+    file = "${secrets}/secrets/work-wifi-password-file.env.age";
     mode = "400";
     owner = "root";
     group = "root";
