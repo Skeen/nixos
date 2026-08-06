@@ -18,6 +18,7 @@
     ./agenix.nix
     ../../modules/base/git.nix
     ../../modules/server/ssh.nix
+    ./monitors.nix
   ];
 
   nix = {
