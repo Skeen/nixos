@@ -13,5 +13,6 @@
     ./panel.nix
     ./background.nix
     ./terminal.nix
+    ./shortcuts.nix
   ];
 }
