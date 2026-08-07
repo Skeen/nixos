@@ -16,18 +16,45 @@ let
     "separator3"
     "audio"
     "separator4"
-    "clock"
+    "voxtype"
     "separator5"
+    "clock"
+    "separator6"
     "power"
   ];
 in
 {
-  home-manager.users.emil = { pkgs, lib, ... }: {
+  home-manager.users.emil = { config, pkgs, lib, ... }: let
+
+    # Clicking the indicator stops or starts the voxtype service, so the
+    # microphone can be shut off entirely.
+    voxtypeToggle = pkgs.writeShellScript "genmon-voxtype-toggle" ''
+      if ${pkgs.systemd}/bin/systemctl --user is-active --quiet voxtype; then
+        ${pkgs.systemd}/bin/systemctl --user stop voxtype
+      else
+        ${pkgs.systemd}/bin/systemctl --user start voxtype
+      fi
+    '';
+
+    # Voice-to-text indicator, see ../voxtype.nix
+    voxtypeIndicator = pkgs.writeShellScript "genmon-voxtype" ''
+      case "$(${config.services.voxtype.package}/bin/voxtype status)" in
+        recording | streaming) colour="#e01b24"; dot="●"; tip="Voxtype: recording" ;;
+        transcribing)          colour="#e5a50a"; dot="●"; tip="Voxtype: transcribing" ;;
+        idle)                  colour="#2ec27e"; dot="●"; tip="Voxtype: loaded, click to unload" ;;
+        stopped)               colour="#77767b"; dot="○"; tip="Voxtype: unloaded, click to load" ;;
+        *)                     colour="#c061cb"; dot="?"; tip="Voxtype: unknown state" ;;
+      esac
+      echo "<txt><span foreground='$colour'>$dot</span></txt><tool>$tip</tool><txtclick>${voxtypeToggle}</txtclick>"
+    '';
+
+  in {
 
     # 1. Ensure xfce4-panel and needed plugins are available
     home.packages = with pkgs.xfce; [
       xfce4-panel
       xfce4-pulseaudio-plugin
+      xfce4-genmon-plugin
     ];
 
     # 2. Purge the XFCE database
@@ -86,8 +113,10 @@ in
           pluginIds.separator3
           pluginIds.audio
           pluginIds.separator4
-          pluginIds.clock
+          pluginIds.voxtype
           pluginIds.separator5
+          pluginIds.clock
+          pluginIds.separator6
           pluginIds.power
         ];
 
@@ -101,8 +130,10 @@ in
         "plugins/plugin-${toString pluginIds.separator3}" = "separator";
         "plugins/plugin-${toString pluginIds.audio}" = "pulseaudio";
         "plugins/plugin-${toString pluginIds.separator4}" = "separator";
-        "plugins/plugin-${toString pluginIds.clock}" = "clock";
+        "plugins/plugin-${toString pluginIds.voxtype}" = "genmon";
         "plugins/plugin-${toString pluginIds.separator5}" = "separator";
+        "plugins/plugin-${toString pluginIds.clock}" = "clock";
+        "plugins/plugin-${toString pluginIds.separator6}" = "separator";
         "plugins/plugin-${toString pluginIds.power}" = "actions";
 
         # Individual Plugin Settings
@@ -126,6 +157,25 @@ in
         "plugins/plugin-${toString pluginIds.separator3}/style" = 0;
         "plugins/plugin-${toString pluginIds.separator4}/style" = 0;
         "plugins/plugin-${toString pluginIds.separator5}/style" = 0;
+        "plugins/plugin-${toString pluginIds.separator6}/style" = 0;
+
+        # Voxtype
+        # -------
+        # A coloured dot showing the state of voxtype:
+        # - Red = recording
+        # - Yellow = transcribing
+        # - Green = ready
+        # - Hollow = unloaded
+        # - Purple = unknown
+        # Clicking it stops or starts the service.
+        # Command
+        "plugins/plugin-${toString pluginIds.voxtype}/command" = "${voxtypeIndicator}";
+        # Period (s) in the dialog, but milliseconds here. Worst-case lag
+        # between hitting the shortcut and the dot changing colour.
+        "plugins/plugin-${toString pluginIds.voxtype}/update-period" = 100;
+        # We want only the dot, no "Genmon" label next to it
+        # Label
+        "plugins/plugin-${toString pluginIds.voxtype}/use-label" = false;
 
         # Audio
         # -----

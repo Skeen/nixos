@@ -31,6 +31,7 @@
     ../../modules/base/nixos-containers.nix
     ./vega56.nix
     ./vpn.nix
+    ./voxtype.nix
   ];
 
   nix = {

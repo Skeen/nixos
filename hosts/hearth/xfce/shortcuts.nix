@@ -2,6 +2,9 @@
   home-manager.users.emil = { pkgs, lib, ... }: {
 
     # 1. Ensure the needed programs are available
+    #
+    # Note that voxtype, used by the voice-to-text shortcut below, is installed
+    # by ../voxtype.nix rather than here.
     home.packages = with pkgs; [
       # wpctl
       wireplumber
@@ -59,6 +62,11 @@
         "commands/custom/Print" = "xfce4-screenshooter";
         "commands/custom/<Alt>Print" = "xfce4-screenshooter -w";
         "commands/custom/<Shift>Print" = "xfce4-screenshooter -r";
+
+        # Voice-to-text, see ../voxtype.nix
+        # Right super toggles recording. Left super is untouched and keeps
+        # working as a modifier below.
+        "commands/custom/Super_R" = "voxtype record toggle";
 
         # Control alt q to logout
         "commands/custom/<Control><Alt>q" = "xfce4-session-logout";
