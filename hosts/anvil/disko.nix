@@ -65,6 +65,10 @@
                   # SSDs benefit from TRIM being passed through to the disk.
                   # Note: this leaks which blocks are in use; acceptable here.
                   allowDiscards = true;
+                  # Skip dm-crypt's read/write workqueues so I/O is processed
+                  # on the submitting thread. Reduces latency and lifts
+                  # throughput on fast NVMe where the queues are the bottleneck.
+                  bypassWorkqueues = true;
                 };
                 content = {
                   type = "btrfs";
