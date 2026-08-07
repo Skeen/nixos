@@ -14,6 +14,7 @@
     ./tuxedo.nix
     ./disko.nix
     ./impermanence.nix
+    ./podman.nix
     ./home-manager.nix
     ./agenix.nix
     ../../modules/base/git.nix
