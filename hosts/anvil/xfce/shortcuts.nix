@@ -93,8 +93,7 @@
         "xfwm4/custom/<Alt>F7" = "move_window_key";
         # Resize the current window
         "xfwm4/custom/<Alt>F8" = "resize_window_key";
-        # Hide the current window
-        "xfwm4/custom/<Alt>F9" = "hide_window_key";
+        # Minimize is <Super>KP_0 below, so <Alt>F9 must stay unbound
 
         # Cycle through windows forwards and backwards
         "xfwm4/custom/<Alt>Tab" = "cycle_windows_key";
@@ -133,6 +132,8 @@
         # Control window tiling
         # NumLock on uses KP_1 -> KP_9, while NumLock off uses KP_End to KP_Prior
         # KP_3/9 use both the KP_Next/Prior and KP_Page_Down/Up names for completeness
+        "xfwm4/custom/<Super>KP_0"       = "hide_window_key";
+        "xfwm4/custom/<Super>KP_Insert"  = "hide_window_key";
         "xfwm4/custom/<Super>KP_1"       = "tile_down_left_key";
         "xfwm4/custom/<Super>KP_End"     = "tile_down_left_key";
         "xfwm4/custom/<Super>KP_2"       = "tile_down_key";
