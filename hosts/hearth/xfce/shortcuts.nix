@@ -62,8 +62,6 @@
         "commands/custom/<Alt>F1" = "xfce4-popup-applicationsmenu";
         "commands/custom/<Alt>F2" = "xfce4-appfinder --collapsed";
         "commands/custom/<Alt>F2/startup-notify" = "true";
-        "commands/custom/<Alt>F3" = "xfce4-appfinder";
-        "commands/custom/<Alt>F3/startup-notify" = "true";
 
         # Screenshot
         "commands/custom/Print" = "xfce4-screenshooter";
