@@ -32,6 +32,13 @@
     '';
 
     # 3. Configure the panel
+    #
+    # Beware that xfwm4 stores one shortcut per action, so the first matching
+    # entry wins and the rest are silently dropped. Every xfwm4/custom action
+    # must therefore appear once, unless the repeats are alternate names for
+    # one key (the numpad pairs at the bottom resolve to the same keycode).
+    # This does not apply to commands/custom, which is keyed by shortcut and
+    # happily runs the same command from several keys.
     xfconf.settings = {
       xfce4-keyboard-shortcuts = {
         # Register both commands and xfwm4 (window manager shortcuts from the below)
@@ -73,8 +80,7 @@
         # Control alt delete for task manager
         "commands/custom/<Control><Alt>Delete" = "xfce4-taskmanager";
 
-        # Maximize the current window
-        "xfwm4/custom/<Alt>F10" = "maximize_window_key";
+        # Maximize is <Super>KP_5 below, so <Alt>F10 must stay unbound
         # Full screen the current window
         "xfwm4/custom/<Alt>F11" = "fullscreen_key";
         # Configure the current window to be "Always on Top"
@@ -127,7 +133,6 @@
         # Control window tiling
         # NumLock on uses KP_1 -> KP_9, while NumLock off uses KP_End to KP_Prior
         # KP_3/9 use both the KP_Next/Prior and KP_Page_Down/Up names for completeness
-        # KP_5 is currently broken, no idea why
         "xfwm4/custom/<Super>KP_1"       = "tile_down_left_key";
         "xfwm4/custom/<Super>KP_End"     = "tile_down_left_key";
         "xfwm4/custom/<Super>KP_2"       = "tile_down_key";
@@ -139,8 +144,6 @@
         "xfwm4/custom/<Super>KP_Left"    = "tile_left_key";
         "xfwm4/custom/<Super>KP_5"       = "maximize_window_key";
         "xfwm4/custom/<Super>KP_Begin"   = "maximize_window_key";
-        "xfwm4/custom/<Super><Mod2>KP_5" = "maximize_window_key";
-        "xfwm4/custom/<Super><Mod2>KP_Begin" = "maximize_window_key";
         "xfwm4/custom/<Super>KP_6"       = "tile_right_key";
         "xfwm4/custom/<Super>KP_Right"   = "tile_right_key";
         "xfwm4/custom/<Super>KP_7"       = "tile_up_left_key";
