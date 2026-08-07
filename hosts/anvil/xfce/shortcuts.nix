@@ -164,6 +164,20 @@
         "xfwm4/custom/<Control>KP_Right"  = "move_window_to_monitor_right_key";
         "xfwm4/custom/<Control>KP_8"      = "move_window_to_monitor_up_key";
         "xfwm4/custom/<Control>KP_Up"     = "move_window_to_monitor_up_key";
+
+        # Size, restack and roll up; fill grows into free space without maximizing
+        "xfwm4/custom/<Control>KP_0"      = "shade_window_key";
+        "xfwm4/custom/<Control>KP_Insert" = "shade_window_key";
+        "xfwm4/custom/<Control>KP_1"      = "lower_window_key";
+        "xfwm4/custom/<Control>KP_End"    = "lower_window_key";
+        "xfwm4/custom/<Control>KP_3"      = "raise_window_key";
+        "xfwm4/custom/<Control>KP_Next"   = "raise_window_key";
+        "xfwm4/custom/<Control>KP_5"      = "fill_window_key";
+        "xfwm4/custom/<Control>KP_Begin"  = "fill_window_key";
+        "xfwm4/custom/<Control>KP_7"      = "maximize_vert_key";
+        "xfwm4/custom/<Control>KP_Home"   = "maximize_vert_key";
+        "xfwm4/custom/<Control>KP_9"      = "maximize_horiz_key";
+        "xfwm4/custom/<Control>KP_Prior"  = "maximize_horiz_key";
       };
     };
   };
