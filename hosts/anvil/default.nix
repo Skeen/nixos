@@ -19,6 +19,7 @@
     ../../modules/base/git.nix
     ../../modules/server/ssh.nix
     ./monitors.nix
+    ./xfce/default.nix
   ];
 
   nix = {
