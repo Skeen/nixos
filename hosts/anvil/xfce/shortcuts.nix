@@ -154,6 +154,16 @@
         "xfwm4/custom/<Super>KP_9"       = "tile_up_right_key";
         "xfwm4/custom/<Super>KP_Prior"   = "tile_up_right_key";
         "xfwm4/custom/<Super>KP_Page_Up" = "tile_up_right_key";
+
+        # Throw the current window to the monitor in that direction
+        "xfwm4/custom/<Control>KP_2"      = "move_window_to_monitor_down_key";
+        "xfwm4/custom/<Control>KP_Down"   = "move_window_to_monitor_down_key";
+        "xfwm4/custom/<Control>KP_4"      = "move_window_to_monitor_left_key";
+        "xfwm4/custom/<Control>KP_Left"   = "move_window_to_monitor_left_key";
+        "xfwm4/custom/<Control>KP_6"      = "move_window_to_monitor_right_key";
+        "xfwm4/custom/<Control>KP_Right"  = "move_window_to_monitor_right_key";
+        "xfwm4/custom/<Control>KP_8"      = "move_window_to_monitor_up_key";
+        "xfwm4/custom/<Control>KP_Up"     = "move_window_to_monitor_up_key";
       };
     };
   };
