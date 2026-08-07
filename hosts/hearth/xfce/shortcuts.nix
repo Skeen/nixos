@@ -91,8 +91,6 @@
         "xfwm4/custom/<Alt>F12" = "above_key";
         # Close the current window
         "xfwm4/custom/<Alt>F4" = "close_window_key";
-        # Pin the current window to every workspace
-        "xfwm4/custom/<Alt>F6" = "stick_window_key";
         # Move the current window
         "xfwm4/custom/<Alt>F7" = "move_window_key";
         # Resize the current window
