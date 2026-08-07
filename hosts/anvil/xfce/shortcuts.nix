@@ -8,7 +8,6 @@
       # xkill
       xorg.xkill
       # xfce4 tools
-      xfce.xfce4-panel  # xfce4-popup-applicationsmenu
       xfce.xfce4-session  # xfce4-session-logout, xflock4
       xfce.xfce4-taskmanager
       xfce.xfce4-screenshooter
@@ -56,7 +55,6 @@
         "commands/custom/AudioMute" = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
 
         # Program launchers
-        "commands/custom/<Alt>F1" = "xfce4-popup-applicationsmenu";
         "commands/custom/<Alt>F2" = "xfce4-appfinder --collapsed";
         "commands/custom/<Alt>F2/startup-notify" = "true";
 
