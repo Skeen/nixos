@@ -1,11 +1,16 @@
-# NOTE: It may be necessary to refresh the font cache: `fc-cache -fv`
-{ ... }: {
-  home-manager.users.emil = { pkgs, lib, ... }: {
-    # 1. Ensure the font is installed
-    home.packages = with pkgs; [
-      nerd-fonts.hack
-    ];
+{ pkgs, ... }: {
+  # 1. Ensure the font is installed
+  #
+  # The font is installed system-wide instead of via home.packages, as NixOS
+  # pre-builds the fontconfig cache for fonts.packages. Fonts in the user
+  # profile defeat fontconfig's mtime-based cache invalidation (nix store
+  # mtimes are fixed at the epoch), requiring a manual `fc-cache -f` after
+  # every change.
+  fonts.packages = with pkgs; [
+    nerd-fonts.hack
+  ];
 
+  home-manager.users.emil = { pkgs, lib, ... }: {
     # 2. Purge the XFCE database
     #
     # We install a hook to purge all entries in the xfce4-terminal database.
