@@ -22,6 +22,7 @@
     ../../modules/server/ssh.nix
     ./monitors.nix
     ./xfce/default.nix
+    ./clank.nix
   ];
 
   nix = {

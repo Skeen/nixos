@@ -25,6 +25,45 @@
         "type": "github"
       }
     },
+    "clank": {
+      "inputs": {
+        "config": "config",
+        "home-manager": [
+          "home-manager-unstable"
+        ],
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786382437,
+        "narHash": "sha256-k2q+0ZIkA5c64zMWnUOdsCNR6qzZN1mL11vwG6c2S30=",
+        "ref": "dev",
+        "rev": "a396c19b76106c709d880678728e55b168c5f0e8",
+        "revCount": 121,
+        "type": "git",
+        "url": "https://git.caspervk.net/caspervk/clank.git"
+      },
+      "original": {
+        "ref": "dev",
+        "type": "git",
+        "url": "https://git.caspervk.net/caspervk/clank.git"
+      }
+    },
+    "config": {
+      "flake": false,
+      "locked": {
+        "path": "./empty.nix",
+        "type": "path"
+      },
+      "original": {
+        "path": "./empty.nix",
+        "type": "path"
+      },
+      "parent": [
+        "clank"
+      ]
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -364,6 +403,7 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "clank": "clank",
         "disko": "disko",
         "home-manager": "home-manager",
         "home-manager-unstable": "home-manager-unstable",
