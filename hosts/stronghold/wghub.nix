@@ -4,9 +4,6 @@
     allowedUDPPorts = [ 51820 ];
   };
 
-  systemd.network.enable = true;
-  networking.dhcpcd.denyInterfaces = ["wghub"];
-
   systemd.network.netdevs."10-wghub" = {
     netdevConfig = {
       Kind = "wireguard";
