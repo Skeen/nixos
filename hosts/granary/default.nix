@@ -17,6 +17,7 @@
     ./home-manager.nix
     ../../modules/base/git.nix
     ../../modules/server/ssh.nix
+    ./network.nix
     ./wghub.nix
     ./jellyfin.nix
     ./ipv6.nix
