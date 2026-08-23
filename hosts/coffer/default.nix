@@ -11,13 +11,18 @@
   nixpkgs.hostPlatform = "aarch64-linux";
 
   imports = [
+    ./agenix.nix
     ./hardware.nix
     ./impermanence.nix
+    ./home-manager.nix
+    ../../modules/base/git.nix
+    ../../modules/server/ssh.nix
+    ./ipv6.nix
+    ./m1s-ups.nix
   ];
 
   environment.systemPackages = with pkgs; [
-    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    #  wget
+    vim
     git
   ];
 
@@ -37,9 +42,34 @@
   system.stateVersion = "25.05";
   networking.hostName = "coffer";
 
-  services.openssh = {
-    enable = true;
-    settings.PermitRootLogin = "yes";
+  users.mutableUsers = false;
+  users.users.root = {
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
   };
-  users.extraUsers.root.initialPassword = pkgs.lib.mkForce "odroid";
+
+  users.users.emil = {
+    isNormalUser = true;
+    description = "Emil Madsen";
+    extraGroups = ["networkmanager" "wheel"];
+    packages = with pkgs; [
+      #  thunderbird
+    ];
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
+  };
+
+  environment.persistence."/nix/persist" = {
+    users.emil = {
+      files = [
+        "/.ssh/id_ed25519.pub"
+        "/.ssh/id_ed25519"
+      ];
+    };
+  };
+
+  age.secrets.users-hashed-password-file = {
+    file = "${secrets}/secrets/users-hashed-password-file.age";
+    mode = "400";
+    owner = "root";
+    group = "root";
+  };
 }
