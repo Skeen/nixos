@@ -28,7 +28,6 @@
     ./podman.nix
     ./fish.nix
     ./nix-ld.nix
-    ../../modules/base/nixos-containers.nix
     ./vega56.nix
     ./vpn.nix
     ./voxtype.nix
@@ -82,14 +81,6 @@
 
   networking.hostName = "hearth"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  networking.nat = {
-      enable = true;
-      externalInterface = "enp35s0";
-      # The '+' acts as a wildcard for all interfaces starting with ve-os2mo-
-      internalInterfaces = [ "ve-os2mo-+" ];
-  };
-
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
