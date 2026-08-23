@@ -44,6 +44,10 @@
 
   # Bootloader
   boot = {
+    # Emulate aarch64 via qemu so we can build for the Odroid M1S hosts
+    # (coffer, granary) locally with nixos-rebuild --target-host.
+    binfmt.emulatedSystems = ["aarch64-linux"];
+
     initrd.systemd.enable = true;
     initrd.luks.devices.crypted = {
       device = "/dev/md0";
