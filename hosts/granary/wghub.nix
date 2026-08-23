@@ -1,4 +1,4 @@
-{ pkgs, config, secrets, ... }:
+{ config, secrets, ... }:
 {
   networking.firewall = {
     allowedUDPPorts = [ 51820 ];
@@ -6,33 +6,38 @@
 
   networking.firewall.checkReversePath = "loose";
 
-  networking.wireguard.interfaces.wghub = let
-    stronghold_public_key = "NLGR5eXjC6Fq2tw7VFvrgl+CHDvHqmwvHXbfNaIfmVs=";
-  in {
-    ips = [ "192.168.50.2/24" ];
-    privateKeyFile = config.age.secrets.granary-wg-private-key-file.path;
+  systemd.network.enable = true;
+  networking.dhcpcd.denyInterfaces = ["wghub"];
 
-    peers = [
+  systemd.network.netdevs."10-wghub" = {
+    netdevConfig = {
+      Kind = "wireguard";
+      Name = "wghub";
+    };
+    wireguardConfig = {
+      PrivateKeyFile = config.age.secrets.granary-wg-private-key-file.path;
+    };
+    wireguardPeers = [
       # Stronghold
       {
-        publicKey = stronghold_public_key;
-        allowedIPs = [ "192.168.50.1/32" ];
-        endpoint = "awful.engineer:51820";
-        persistentKeepalive = 25;
+        PublicKey = "NLGR5eXjC6Fq2tw7VFvrgl+CHDvHqmwvHXbfNaIfmVs=";
+        AllowedIPs = [ "192.168.50.1/32" ];
+        Endpoint = "awful.engineer:51820";
+        PersistentKeepalive = 25;
       }
     ];
-    # Due to a known NixOS issue, 'persistentKeepalive' is not respected in peers.
-    # Thus we reapply it here to esnure it takes effect.
-    # Without 'persistentKeepalive' the NAT will eventually close the connection,
-    # and thus only granary can reach stronghold, not vice versa.
-    # See: https://wiki.nixos.org/wiki/WireGuard#Tunnel_does_not_automatically_connect_despite_persistentKeepalive_being_set
-    postSetup = "${pkgs.wireguard-tools}/bin/wg set wghub peer '${stronghold_public_key}' persistent-keepalive 25";
+  };
+
+  systemd.network.networks."10-wghub" = {
+    matchConfig.Name = "wghub";
+    address = [ "192.168.50.2/24" ];
   };
 
   age.secrets.granary-wg-private-key-file = {
     file = "${secrets}/secrets/granary-wg-private-key.age";
-    mode = "400";
+    # systemd-networkd reads PrivateKeyFile as the systemd-network user
+    mode = "440";
     owner = "root";
-    group = "root";
+    group = "systemd-network";
   };
 }
