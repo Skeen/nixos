@@ -16,6 +16,7 @@
     ./impermanence.nix
     ./home-manager.nix
     ../../modules/base/git.nix
+    ../../modules/base/fish.nix
     ../../modules/server/ssh.nix
     ./network.nix
     ./wghub.nix

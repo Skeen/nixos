@@ -26,7 +26,7 @@
     ./steam.nix
     ./swap.nix
     ./podman.nix
-    ./fish.nix
+    ../../modules/base/fish.nix
     ./nix-ld.nix
     ./vega56.nix
     ./vpn.nix

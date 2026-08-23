@@ -15,7 +15,7 @@
     ./disko.nix
     ./impermanence.nix
     ./podman.nix
-    ./fish.nix
+    ../../modules/base/fish.nix
     ./home-manager.nix
     ./agenix.nix
     ../../modules/base/git.nix

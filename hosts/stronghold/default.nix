@@ -18,6 +18,7 @@
     ./ssh-key.nix
     ./ssh-known-hosts.nix
     ../../modules/base/git.nix
+    ../../modules/base/fish.nix
     ../../modules/base/nixos-containers.nix
     ./lunarvim.nix
     ./syncthing2.nix
