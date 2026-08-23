@@ -32,6 +32,7 @@
     ./vega56.nix
     ./vpn.nix
     ./voxtype.nix
+    ../../modules/base/clank.nix
   ];
 
   nix = {

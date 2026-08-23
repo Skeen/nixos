@@ -19,10 +19,10 @@
     ./home-manager.nix
     ./agenix.nix
     ../../modules/base/git.nix
+    ../../modules/base/clank.nix
     ../../modules/server/ssh.nix
     ./monitors.nix
     ./xfce/default.nix
-    ./clank.nix
   ];
 
   nix = {
