@@ -41,17 +41,13 @@
         # Screensaver: Activate screensaver when computer is idle
         "saver/idle-activation/enabled" = false;
 
-        # When screensaver is enable simply show a blank screen
+        # When screensaver is enabled simply show a blank screen
         # Screensaver: Theme
         # 0 = Blank screen
         # 1 = Random screensaver
         # 2 = Specific screensaver
         # Both 1 and 2 select the screensaver from `saver/themes/list`
-        "saver/mode" = 2;
-
-        # Use the "Floating Xfce" logos screensaver
-        # Screensaver: Theme
-        "saver/themes/list" = ["screensavers-xfce-floaters"];
+        "saver/mode" = 0;
       };
       xfce4-power-manager = {
         # Allow the lock screen to actually turn off the monitor
