@@ -18,6 +18,10 @@
         in {
           home-manager.users.root = {
             programs.opencode = {
+              # Disable mouse capture so the host terminal's native selection
+              # is preserved. The TUI's own copy path (xclip/OSC 52) cannot
+              # reach the host clipboard from inside the container anyway.
+              tui.mouse = false;
               settings = {
                 "$schema" = "https://opencode.ai/config.json";
                 plugin = ["${berget-auth}"];
