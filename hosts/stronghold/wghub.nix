@@ -19,6 +19,11 @@
         PublicKey = "qTXv/mcdkkJZExDj8XMYZeR5zKS3AYcA6Vnyz+bCMHI=";
         AllowedIPs = [ "192.168.50.2/32" ];
       }
+      # Coffer
+      {
+        PublicKey = "0l71ocXjUZhntat9i7BxBPW2RWjSkWsGHeB+NGkP1Gk=";
+        AllowedIPs = [ "192.168.50.3/32" ];
+      }
     ];
   };
 

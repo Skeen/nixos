@@ -20,6 +20,8 @@
     ../../modules/server/ssh.nix
     ./ipv6.nix
     ./m1s-ups.nix
+    ./network.nix
+    ./wghub.nix
   ];
 
   environment.systemPackages = with pkgs; [
