@@ -6,6 +6,13 @@
   systemd.network.networks."10-enp1s0" = {
     matchConfig.Name = "enp1s0";
     networkConfig.DHCP = "yes";
+    address = [ "2a01:4f9:c013:7d2b::1/64" ];
+    routes = [
+      {
+        Gateway = "fe80::1";
+        GatewayOnLink = true;
+      }
+    ];
   };
 
   # NixOS containers with privateNetwork = true
