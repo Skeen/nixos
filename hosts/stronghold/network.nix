@@ -23,34 +23,21 @@
   };
 
   # NixOS containers with privateNetwork = true
-  # Use point-to-point addressing to match the legacy NixOS container networking
+  # Tell networkd to ignore these interfaces; the container post-start script
+  # configures them itself. This avoids conflicts where both networkd and
+  # the script try to add the same address.
   systemd.network.networks."20-ve-synapse" = {
     matchConfig.Name = "ve-synapse";
-    addresses = [
-      {
-        Address = "192.168.100.10/32";
-        Peer = "192.168.100.13/32";
-      }
-    ];
+    linkConfig.Unmanaged = true;
   };
 
   systemd.network.networks."20-ve-traggo" = {
     matchConfig.Name = "ve-traggo";
-    addresses = [
-      {
-        Address = "192.168.100.10/32";
-        Peer = "192.168.100.12/32";
-      }
-    ];
+    linkConfig.Unmanaged = true;
   };
 
   systemd.network.networks."20-ve-syncthing" = {
     matchConfig.Name = "ve-syncthing";
-    addresses = [
-      {
-        Address = "192.168.100.10/32";
-        Peer = "192.168.100.11/32";
-      }
-    ];
+    linkConfig.Unmanaged = true;
   };
 }
