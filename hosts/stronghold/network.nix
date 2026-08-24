@@ -20,4 +20,14 @@
     matchConfig.Name = "ve-synapse";
     networkConfig.Address = "192.168.100.10/24";
   };
+
+  systemd.network.networks."20-ve-traggo" = {
+    matchConfig.Name = "ve-traggo";
+    networkConfig.Address = "192.168.100.10/24";
+  };
+
+  systemd.network.networks."20-ve-syncthing" = {
+    matchConfig.Name = "ve-syncthing";
+    networkConfig.Address = "192.168.100.10/24";
+  };
 }
