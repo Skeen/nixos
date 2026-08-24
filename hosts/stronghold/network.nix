@@ -16,18 +16,34 @@
   };
 
   # NixOS containers with privateNetwork = true
+  # Use point-to-point addressing to match the legacy NixOS container networking
   systemd.network.networks."20-ve-synapse" = {
     matchConfig.Name = "ve-synapse";
-    networkConfig.Address = "192.168.100.10/24";
+    addresses = [
+      {
+        Address = "192.168.100.10/32";
+        Peer = "192.168.100.13/32";
+      }
+    ];
   };
 
   systemd.network.networks."20-ve-traggo" = {
     matchConfig.Name = "ve-traggo";
-    networkConfig.Address = "192.168.100.10/24";
+    addresses = [
+      {
+        Address = "192.168.100.10/32";
+        Peer = "192.168.100.12/32";
+      }
+    ];
   };
 
   systemd.network.networks."20-ve-syncthing" = {
     matchConfig.Name = "ve-syncthing";
-    networkConfig.Address = "192.168.100.10/24";
+    addresses = [
+      {
+        Address = "192.168.100.10/32";
+        Peer = "192.168.100.11/32";
+      }
+    ];
   };
 }
