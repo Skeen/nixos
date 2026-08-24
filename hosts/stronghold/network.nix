@@ -10,6 +10,9 @@
     settings.server.access-control = [ "192.168.100.0/24 allow" ];
   };
 
+  # Disable systemd-resolved so it doesn't manage /etc/resolv.conf
+  services.resolved.enable = false;
+
   # Use unbound for the host itself. Use the container-facing address so
   # containers can also use it when they copy the host's resolv.conf.
   networking.nameservers = [ "192.168.100.10" ];
