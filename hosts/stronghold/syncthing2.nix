@@ -129,6 +129,9 @@ in {
     }: {
       system.stateVersion = "25.05";
 
+      # DNS for the container (use the host's unbound resolver)
+      networking.nameservers = [ "192.168.100.10" ];
+
       systemd.tmpfiles.rules = [
         "d ${container_base_dir} 0750 syncthing syncthing -"
         "d ${container_data_dir} 0750 syncthing syncthing -"

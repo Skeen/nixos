@@ -123,6 +123,9 @@ in {
     }: {
       system.stateVersion = "25.05";
 
+      # DNS for the container (use the host's unbound resolver)
+      networking.nameservers = [ "192.168.100.10" ];
+
       # Open the container firewall for:
       networking.firewall.allowedTCPPorts = [
         # The ClientAPI and Federation API

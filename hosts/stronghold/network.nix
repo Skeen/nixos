@@ -3,6 +3,13 @@
   networking.useDHCP = false;
   networking.useNetworkd = true;
 
+  # Local DNS resolver for containers
+  services.unbound = {
+    enable = true;
+    settings.server.interface = [ "192.168.100.10" ];
+    settings.server.access-control = [ "192.168.100.0/24 allow" ];
+  };
+
   systemd.network.networks."10-enp1s0" = {
     matchConfig.Name = "enp1s0";
     networkConfig.DHCP = "yes";
