@@ -10,6 +10,10 @@
     settings.server.access-control = [ "192.168.100.0/24 allow" ];
   };
 
+  # Use unbound for the host itself. Use the container-facing address so
+  # containers can also use it when they copy the host's resolv.conf.
+  networking.nameservers = [ "192.168.100.10" ];
+
   systemd.network.networks."10-enp1s0" = {
     matchConfig.Name = "enp1s0";
     networkConfig.DHCP = "yes";
