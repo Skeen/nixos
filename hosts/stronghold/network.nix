@@ -17,6 +17,10 @@
   # containers can also use it when they copy the host's resolv.conf.
   networking.nameservers = [ "192.168.100.10" ];
 
+  # unbound sets useLocalResolver=true by default, which forces resolv.conf
+  # to use 127.0.0.1. Our resolver is on 192.168.100.10, not localhost.
+  networking.resolvconf.useLocalResolver = false;
+
   systemd.network.networks."10-enp1s0" = {
     matchConfig.Name = "enp1s0";
     networkConfig.DHCP = "yes";
