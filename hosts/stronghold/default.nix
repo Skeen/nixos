@@ -123,4 +123,9 @@
     owner = "root";
     group = "root";
   };
+
+  # Limit journal retention to 7 days to prevent disk exhaustion
+  services.journald.extraConfig = ''
+    MaxRetentionSec=7day
+  '';
 }

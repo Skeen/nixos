@@ -123,8 +123,13 @@ in {
     }: {
       system.stateVersion = "25.05";
 
-      # DNS for the container (use the host's unbound resolver)
-      networking.nameservers = [ "192.168.100.10" ];
+      # DNS is inherited from the host via /etc/resolv.conf
+      # The host runs unbound on 127.0.0.1 and 192.168.100.10
+
+      # Limit journal retention to 7 days
+      services.journald.extraConfig = ''
+        MaxRetentionSec=7day
+      '';
 
       # Open the container firewall for:
       networking.firewall.allowedTCPPorts = [
