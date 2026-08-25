@@ -1,0 +1,25 @@
+# Clank credentials proxy. Public template; the `{$VAR}` token values are
+# injected via agenix at activation (clank passes no env to the proxy).
+
+# MCP Servers
+:1394 {
+	reverse_proxy https://mcp.kagi.com {
+		header_up Authorization "Bearer {$CLANK_KAGI_TOKEN}"
+	}
+}
+
+# Agent Skills
+:1932 {
+	reverse_proxy https://logs-prod-us-central1.grafana.net {
+		header_up Authorization "Basic {$CLANK_GRAFANA_TOKEN}"
+	}
+}
+
+:1942 {
+	reverse_proxy https://git.magenta.dk {
+		# https://git.magenta.dk/-/user_settings/personal_access_tokens (api, write_repository)
+		header_up PRIVATE-TOKEN "{$CLANK_GITLAB_TOKEN}"
+		# printf 'clank:<token>' | base64 --wrap=0
+		header_up Authorization "Basic {$CLANK_GITLAB_BASIC}"
+	}
+}
