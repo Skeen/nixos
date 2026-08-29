@@ -36,6 +36,15 @@
               settings = {
                 "$schema" = "https://opencode.ai/config.json";
                 plugin = ["${berget-auth}"];
+                # BergetAI can be slow; give requests plenty of headroom so
+                # opencode does not abort with "The operation timed out."
+                provider.berget.options = {
+                  # Overall cap per request. Raised from 10 min after Kimi-K3
+                  # repeatedly stalled past it with no streamed output.
+                  timeout = 1800000;
+                  headerTimeout = 120000;
+                  chunkTimeout = 300000;
+                };
               };
             };
           };
