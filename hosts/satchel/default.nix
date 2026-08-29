@@ -1,0 +1,208 @@
+# Edit this configuration file to define what should be installed on
+# your system.  Help is available in the configuration.nix(5) man page
+# and in the NixOS manual (accessible by running ‘nixos-help’).
+{
+  config,
+  pkgs,
+  secrets,
+  ...
+}: {
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware.nix
+    ./nixos-hardware.nix
+    ./disko.nix
+    ./impermanence.nix
+    ./podman.nix
+    ../../modules/base/fish.nix
+    ./home-manager.nix
+    ./agenix.nix
+    ../../modules/base/git.nix
+    ../../modules/base/clank.nix
+    ../../modules/server/ssh.nix
+    ./monitors.nix
+    ./xfce/default.nix
+  ];
+
+  nix = {
+    settings = {
+      # Enable flakes
+      experimental-features = ["nix-command" "flakes"];
+      # Allow wheel users (emil) to push unsigned store paths, so satchel can
+      # be deployed remotely from another host via `nixos-rebuild --target-host`.
+      trusted-users = ["@wheel"];
+    };
+  };
+
+  # Bootloader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  networking.hostName = "satchel"; # Define your hostname.
+  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+
+  # Enable networking
+  networking.networkmanager.enable = true;
+  networking.networkmanager.ensureProfiles.environmentFiles = [
+    config.age.secrets.home-wifi-password-file.path
+  ];
+  networking.networkmanager.ensureProfiles.profiles = {
+    "home-wifi" = {
+      connection = {
+        id = "FRITZ!Box 6670 FM";
+        uuid = "4fece54c-fc57-428f-afbc-5b6003d9723e";
+        type = "wifi";
+        # TODO(satchel): Confirm the wifi interface name on the target
+        # (Intel 8265 is typically wlp4s0 on the T580)
+        interface-name = "wlp4s0";
+        autoconnect = true;
+      };
+
+      wifi = {
+        mode = "infrastructure";
+        ssid = "FRITZ!Box 6670 FM";
+      };
+
+      "wifi-security" = {
+        key-mgmt = "wpa-psk";
+        auth-alg = "open";
+        psk = "$HOME_WIFI_PSK";
+      };
+
+      ipv4 = {
+        method = "auto";
+      };
+
+      ipv6 = {
+        addr-gen-mode = "default";
+        method = "auto";
+      };
+    };
+  };
+
+  # Set your time zone.
+  time.timeZone = "Europe/Copenhagen";
+
+  # Select internationalisation properties.
+  i18n.defaultLocale = "en_DK.UTF-8";
+
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "da_DK.UTF-8";
+    LC_IDENTIFICATION = "da_DK.UTF-8";
+    LC_MEASUREMENT = "da_DK.UTF-8";
+    LC_MONETARY = "da_DK.UTF-8";
+    LC_NAME = "da_DK.UTF-8";
+    LC_NUMERIC = "da_DK.UTF-8";
+    LC_PAPER = "da_DK.UTF-8";
+    LC_TELEPHONE = "da_DK.UTF-8";
+    LC_TIME = "da_DK.UTF-8";
+  };
+
+  # Enable the X11 windowing system.
+  services.xserver.enable = true;
+
+  # Enable the XFCE Desktop Environment.
+  services.xserver.displayManager.lightdm.enable = true;
+  services.xserver.desktopManager.xfce.enable = true;
+
+  # Configure keymap in X11
+  services.xserver.xkb = {
+    layout = "dk";
+    variant = "";
+  };
+
+  # Configure console keymap
+  console.keyMap = "dk-latin1";
+
+  # Enable CUPS to print documents.
+  services.printing.enable = true;
+
+  # Enable sound with pipewire.
+  hardware.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    #jack.enable = true;
+
+    # use the example session manager (no others are packaged yet so this is enabled by default,
+    # no need to redefine it in your config for now)
+    #media-session.enable = true;
+  };
+
+  # Enable touchpad support (enabled default in most desktopManager).
+  # services.xserver.libinput.enable = true;
+
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.mutableUsers = false;
+  users.users.root = {
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
+  };
+
+  users.users.emil = {
+    isNormalUser = true;
+    description = "Emil Madsen";
+    extraGroups = ["networkmanager" "wheel"];
+    packages = with pkgs; [
+      #  thunderbird
+    ];
+    hashedPasswordFile = config.age.secrets.users-hashed-password-file.path;
+  };
+
+  # Enable automatic login for the user.
+  services.xserver.displayManager.autoLogin.enable = true;
+  services.xserver.displayManager.autoLogin.user = "emil";
+
+  # Install firefox.
+  programs.firefox.enable = true;
+
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
+  environment.systemPackages = with pkgs; [
+    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #  wget
+    git
+    (lunarvim.override {
+      viAlias = true;
+      vimAlias = true;
+      nvimAlias = true;
+    })
+  ];
+
+  # This value determines the NixOS release from which the default
+  # settings for stateful data, like file locations and database versions
+  # on your system were taken. It‘s perfectly fine and recommended to leave
+  # this value at the release version of the first install of this system.
+  # Before changing this value read the documentation for this option
+  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+  system.stateVersion = "25.05"; # Did you read the comment?
+
+  # This value determines the Home Manager release that your
+  # configuration is compatible with. This helps avoid breakage
+  # when a new Home Manager release introduces backwards
+  # incompatible changes.
+  # You can update Home Manager without changing this value. See
+  # the Home Manager release notes for a list of state version
+  # changes in each release.
+  home-manager.users.emil.home.stateVersion = "25.05"; # Did you read the comment?
+
+  age.secrets.users-hashed-password-file = {
+    file = "${secrets}/secrets/users-hashed-password-file.age";
+    mode = "400";
+    owner = "root";
+    group = "root";
+  };
+
+  age.secrets.home-wifi-password-file = {
+    file = "${secrets}/secrets/home-wifi-password-file.env.age";
+    mode = "400";
+    owner = "root";
+    group = "root";
+  };
+}

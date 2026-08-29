@@ -74,6 +74,12 @@
         specialArgs = inputs; # pass flake inputs to modules
         modules = [./hosts/anvil];
       };
+      # Laptop (Lenovo ThinkPad T580)
+      satchel = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = inputs; # pass flake inputs to modules
+        modules = [./hosts/satchel];
+      };
       # Home desktop
       hearth = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

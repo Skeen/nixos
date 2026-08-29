@@ -1,0 +1,178 @@
+{ ... }: {
+  home-manager.users.emil = { pkgs, lib, ... }: {
+
+    # 1. Ensure the needed programs are available
+    home.packages = with pkgs; [
+      # wpctl
+      wireplumber
+      # xkill
+      xorg.xkill
+      # xfce4 tools
+      xfce.xfce4-session  # xfce4-session-logout, xflock4
+      xfce.xfce4-taskmanager
+      xfce.xfce4-screenshooter
+      xfce.xfce4-appfinder
+      xfce.exo  # exo-open
+    ];
+
+    # 2. Purge the XFCE database
+    #
+    # We install a hook to purge all entries in the xfce4-keyboard-shortcuts database.
+    # This ensures that only the defined configuration below is in effect.
+    # I.e. it protects us from whatever defaults the xfce developers left us.
+    #
+    # The hook is installed in the 'checkLinkTargets' phase of home-manager,
+    # this is a very early phase ensuring that home-manager has not yet written
+    # the configuration file below, nor has started the xfce4-keyboard-shortcuts.
+    home.activation.wipeXfceShorcuts = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
+      echo "Purging Xfce4 Keyboard Shortcuts config to ensure only the defined config runs..."
+      # Removes all entries for xfce4-keyboard-shortcuts in '/' and below (recursive)
+      ${pkgs.xfce.xfconf}/bin/xfconf-query --channel xfce4-keyboard-shortcuts --property / --reset --recursive || true
+    '';
+
+    # 3. Configure the panel
+    #
+    # Beware that xfwm4 stores one shortcut per action, so the first matching
+    # entry wins and the rest are silently dropped. Every xfwm4/custom action
+    # must therefore appear once, unless the repeats are alternate names for
+    # one key (the numpad pairs at the bottom resolve to the same keycode).
+    # This does not apply to commands/custom, which is keyed by shortcut and
+    # happily runs the same command from several keys.
+    xfconf.settings = {
+      xfce4-keyboard-shortcuts = {
+        # Register both commands and xfwm4 (window manager shortcuts from the below)
+        "providers" = ["xfwm4" "commands"];
+
+        # Interpret 'custom' commands as overrides for defaults
+        "commands/custom/override" = true;
+        "xfwm4/custom/override" = true;
+
+        # Audio controls
+        # This uses the wpctl util directly as the xfce4-panel pulseaudio plugin's
+        # keyboard control leaves much to be desired
+        "commands/custom/AudioLowerVolume" = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-";
+        "commands/custom/AudioRaiseVolume" = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+";
+        "commands/custom/AudioMute" = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+
+        # Program launchers
+        "commands/custom/<Alt>F2" = "xfce4-appfinder --collapsed";
+        "commands/custom/<Alt>F2/startup-notify" = "true";
+
+        # Screenshot
+        "commands/custom/Print" = "xfce4-screenshooter";
+        "commands/custom/<Alt>Print" = "xfce4-screenshooter -w";
+        "commands/custom/<Shift>Print" = "xfce4-screenshooter -r";
+
+        # Control alt q to logout
+        "commands/custom/<Control><Alt>q" = "xfce4-session-logout";
+        # Control alt escape to xkill
+        "commands/custom/<Control><Alt>Escape" = "xkill";
+        # Control alt l and super l to lock
+        "commands/custom/<Control><Alt>l" = "xflock4";
+        "commands/custom/<Super>l" = "xflock4";
+        # Control alt t for terminal
+        "commands/custom/<Control><Alt>t" = "exo-open --launch TerminalEmulator";
+        "commands/custom/<Super>Return" = "exo-open --launch TerminalEmulator";
+        # Control alt delete for task manager
+        "commands/custom/<Control><Alt>Delete" = "xfce4-taskmanager";
+
+        # Maximize is <Super>KP_5 below, so <Alt>F10 must stay unbound
+        # Full screen the current window
+        "xfwm4/custom/<Alt>F11" = "fullscreen_key";
+        # Configure the current window to be "Always on Top"
+        "xfwm4/custom/<Alt>F12" = "above_key";
+        # Close the current window
+        "xfwm4/custom/<Alt>F4" = "close_window_key";
+        # Move the current window
+        "xfwm4/custom/<Alt>F7" = "move_window_key";
+        # Resize the current window
+        "xfwm4/custom/<Alt>F8" = "resize_window_key";
+        # Minimize is <Super>KP_0 below, so <Alt>F9 must stay unbound
+
+        # Cycle through windows forwards and backwards
+        "xfwm4/custom/<Alt>Tab" = "cycle_windows_key";
+        "xfwm4/custom/<Alt><Shift>Tab" = "cycle_reverse_windows_key";
+        # Cycle through windows without picker
+        "xfwm4/custom/<Super>Tab" = "switch_window_key";
+
+        # Open the window menu
+        "xfwm4/custom/<Alt>space" = "popup_menu_key";
+
+        "xfwm4/custom/Escape" = "cancel_key";
+
+        # Minimize all windows showing the desktop
+        "xfwm4/custom/<Control><Alt>d" = "show_desktop_key";
+        # Go right or left in workspaces
+        "xfwm4/custom/<Control><Alt>Left" = "left_workspace_key";
+        "xfwm4/custom/<Control><Alt>Right" = "right_workspace_key";
+        # Move the current window to the next or previous workspace
+        "xfwm4/custom/<Super>Right" = "move_window_next_workspace_key";
+        "xfwm4/custom/<Super>Left" = "move_window_prev_workspace_key";
+
+        # Go to workspace n
+        "xfwm4/custom/<Control>F1" = "workspace_1_key";
+        "xfwm4/custom/<Control>F2" = "workspace_2_key";
+        "xfwm4/custom/<Control>F3" = "workspace_3_key";
+        "xfwm4/custom/<Control>F4" = "workspace_4_key";
+        "xfwm4/custom/<Control>F5" = "workspace_5_key";
+        "xfwm4/custom/<Control>F6" = "workspace_6_key";
+        "xfwm4/custom/<Control>F7" = "workspace_7_key";
+        "xfwm4/custom/<Control>F8" = "workspace_8_key";
+        "xfwm4/custom/<Control>F9" = "workspace_9_key";
+        "xfwm4/custom/<Control>F10" = "workspace_10_key";
+        "xfwm4/custom/<Control>F11" = "workspace_11_key";
+        "xfwm4/custom/<Control>F12" = "workspace_12_key";
+
+        # Control window tiling
+        # NumLock on uses KP_1 -> KP_9, while NumLock off uses KP_End to KP_Prior
+        # KP_3/9 use both the KP_Next/Prior and KP_Page_Down/Up names for completeness
+        "xfwm4/custom/<Super>KP_0"       = "hide_window_key";
+        "xfwm4/custom/<Super>KP_Insert"  = "hide_window_key";
+        "xfwm4/custom/<Super>KP_1"       = "tile_down_left_key";
+        "xfwm4/custom/<Super>KP_End"     = "tile_down_left_key";
+        "xfwm4/custom/<Super>KP_2"       = "tile_down_key";
+        "xfwm4/custom/<Super>KP_Down"    = "tile_down_key";
+        "xfwm4/custom/<Super>KP_3"       = "tile_down_right_key";
+        "xfwm4/custom/<Super>KP_Next"    = "tile_down_right_key";
+        "xfwm4/custom/<Super>KP_Page_Down" = "tile_down_right_key";
+        "xfwm4/custom/<Super>KP_4"       = "tile_left_key";
+        "xfwm4/custom/<Super>KP_Left"    = "tile_left_key";
+        "xfwm4/custom/<Super>KP_5"       = "maximize_window_key";
+        "xfwm4/custom/<Super>KP_Begin"   = "maximize_window_key";
+        "xfwm4/custom/<Super>KP_6"       = "tile_right_key";
+        "xfwm4/custom/<Super>KP_Right"   = "tile_right_key";
+        "xfwm4/custom/<Super>KP_7"       = "tile_up_left_key";
+        "xfwm4/custom/<Super>KP_Home"    = "tile_up_left_key";
+        "xfwm4/custom/<Super>KP_8"       = "tile_up_key";
+        "xfwm4/custom/<Super>KP_Up"      = "tile_up_key";
+        "xfwm4/custom/<Super>KP_9"       = "tile_up_right_key";
+        "xfwm4/custom/<Super>KP_Prior"   = "tile_up_right_key";
+        "xfwm4/custom/<Super>KP_Page_Up" = "tile_up_right_key";
+
+        # Throw the current window to the monitor in that direction
+        "xfwm4/custom/<Control>KP_2"      = "move_window_to_monitor_down_key";
+        "xfwm4/custom/<Control>KP_Down"   = "move_window_to_monitor_down_key";
+        "xfwm4/custom/<Control>KP_4"      = "move_window_to_monitor_left_key";
+        "xfwm4/custom/<Control>KP_Left"   = "move_window_to_monitor_left_key";
+        "xfwm4/custom/<Control>KP_6"      = "move_window_to_monitor_right_key";
+        "xfwm4/custom/<Control>KP_Right"  = "move_window_to_monitor_right_key";
+        "xfwm4/custom/<Control>KP_8"      = "move_window_to_monitor_up_key";
+        "xfwm4/custom/<Control>KP_Up"     = "move_window_to_monitor_up_key";
+
+        # Size, restack and roll up; fill grows into free space without maximizing
+        "xfwm4/custom/<Control>KP_0"      = "shade_window_key";
+        "xfwm4/custom/<Control>KP_Insert" = "shade_window_key";
+        "xfwm4/custom/<Control>KP_1"      = "lower_window_key";
+        "xfwm4/custom/<Control>KP_End"    = "lower_window_key";
+        "xfwm4/custom/<Control>KP_3"      = "raise_window_key";
+        "xfwm4/custom/<Control>KP_Next"   = "raise_window_key";
+        "xfwm4/custom/<Control>KP_5"      = "fill_window_key";
+        "xfwm4/custom/<Control>KP_Begin"  = "fill_window_key";
+        "xfwm4/custom/<Control>KP_7"      = "maximize_vert_key";
+        "xfwm4/custom/<Control>KP_Home"   = "maximize_vert_key";
+        "xfwm4/custom/<Control>KP_9"      = "maximize_horiz_key";
+        "xfwm4/custom/<Control>KP_Prior"  = "maximize_horiz_key";
+      };
+    };
+  };
+}
