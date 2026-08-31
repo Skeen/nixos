@@ -373,8 +373,23 @@ in {
     # -- LSP -------------------------------------------------------------
     lsp = {
       enable = true;
-      # LunarVim does not ship any pre-configured servers; they are added at
-      # runtime through Mason, so we only set up the client-side defaults.
+      # LunarVim installs a fixed default server set through Mason at first
+      # launch (pyright, ruff, lua_ls, clangd, autotools_ls, jsonls, yamlls,
+      # nil_ls, bashls + on-setup LanguageTool). Ship the same set from nix so
+      # it exists at build time with zero network/delay; nixvim wires PATH for
+      # each server exactly like lspconfig.
+      servers = {
+        pyright.enable = true;
+        ruff.enable = true;
+        lua_ls.enable = true;
+        clangd.enable = true;
+        autotools_ls.enable = true;
+        jsonls.enable = true;
+        yamlls.enable = true;
+        nil_ls.enable = true;
+        bashls.enable = true;
+      };
+
       # lvim.lsp.config.buffer_mappings (normal_mode)
       keymaps = {
         lspBuf = {
@@ -455,7 +470,7 @@ in {
           end
         '';
         confirm_opts = {
-          behavior = "Replace";
+          behavior = "replace";
           select = false;
         };
         completion = {
@@ -645,8 +660,8 @@ in {
       settings.theme.__raw = "require('telescope.themes').get_dropdown({})";
       settings = {
         defaults = {
-          prompt_prefix = "";
-          selection_caret = "";
+          prompt_prefix = " ";
+          selection_caret = " ";
           entry_prefix = "  ";
           initial_mode = "insert";
           selection_strategy = "reset";
@@ -2407,43 +2422,29 @@ in {
       end
     end
 
-    -- Terminal execs from lvim.core.terminal (toggleterm custom terminals);
-    -- toggleterm is lazy now, so defer until it loads.
-    local __apply_terminal_execs = function()
-      local Terminal = require("toggleterm.terminal").Terminal
-      local horizontal_term = Terminal:new {
-        direction = "horizontal",
-        size = 0.3,
-        hidden = true,
-      }
-      local vertical_term = Terminal:new {
-        direction = "vertical",
-        size = 0.4,
-        hidden = true,
-      }
-      local float_term = Terminal:new {
-        direction = "float",
-        hidden = true,
-      }
-      local term_keymap_opts = { noremap = true, silent = true }
-      vim.keymap.set({ "n", "t" }, "<M-1>", function()
-        horizontal_term:toggle()
-      end, vim.tbl_extend("force", term_keymap_opts, { desc = "Horizontal Terminal" }))
-      vim.keymap.set({ "n", "t" }, "<M-2>", function()
-        vertical_term:toggle()
-      end, vim.tbl_extend("force", term_keymap_opts, { desc = "Vertical Terminal" }))
-      vim.keymap.set({ "n", "t" }, "<M-3>", function()
-        float_term:toggle()
-      end, vim.tbl_extend("force", term_keymap_opts, { desc = "Float Terminal" }))
-    end
-    vim.api.nvim_create_autocmd("User", {
-      pattern = "LazyLoad",
-      callback = function(args)
-        if args.data and args.data:match("toggleterm") then
-          __apply_terminal_execs()
+    -- Terminal execs from lvim.core.terminal (toggleterm custom terminals).
+    -- Keys bound eagerly (LV parity); toggleterm resolves lazily on press.
+    local term_keymap_opts = { noremap = true, silent = true }
+    local __term_toggle = function(direction)
+      return function()
+        local Terminal = require("toggleterm.terminal").Terminal
+        local term
+        if direction == "h" then
+          term = Terminal:new { direction = "horizontal", size = 0.3, hidden = true }
+        elseif direction == "v" then
+          term = Terminal:new { direction = "vertical", size = 0.4, hidden = true }
+        else
+          term = Terminal:new { direction = "float", hidden = true }
         end
-      end,
-    })
+        term:toggle()
+      end
+    end
+    vim.keymap.set({ "n", "t" }, "<M-1>", __term_toggle("h"),
+      vim.tbl_extend("force", term_keymap_opts, { desc = "Horizontal Terminal" }))
+    vim.keymap.set({ "n", "t" }, "<M-2>", __term_toggle("v"),
+      vim.tbl_extend("force", term_keymap_opts, { desc = "Vertical Terminal" }))
+    vim.keymap.set({ "n", "t" }, "<M-3>", __term_toggle("f"),
+      vim.tbl_extend("force", term_keymap_opts, { desc = "Float Terminal" }))
   '';
 
   # hide cursorline in lir buffers etc. handled through autocmds

@@ -1,6 +1,6 @@
 local __pbuf = {}
 local __pout = function(l) __pbuf[#__pbuf+1] = tostring(l) end
-local mods = {"telescope","which-key","gitsigns","lualine","bufferline","nvim-treesitter","nvim-autopairs","Comment"}
+local mods = {"which-key","gitsigns","lualine","bufferline","nvim-treesitter","nvim-autopairs","Comment"}
 for _, m in ipairs(mods) do
   local key = m:gsub("[.-]", "_")
   __pout("loaded_" .. m .. "=" .. tostring(package.loaded[m] ~= nil))
