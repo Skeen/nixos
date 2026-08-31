@@ -195,15 +195,13 @@ in {
     LspInstall = {
       command.__raw = ''
         function(opts)
-          local ok, mlsp = pcall(require, "mason-lspconfig")
-          if not ok then
-            vim.notify("mason-lspconfig is not available", vim.log.levels.WARN)
-            return
-          end
-          mlsp.setup({ ensure_installed = {} })
-          for _, server in ipairs(vim.split(opts.args, "%s")) do
-            require("mason-lspconfig.install").install(server)
-          end
+          -- Servers ship from nix (build-time); runtime installs are disabled.
+          -- Built-in coverage: pyright ruff lua_ls clangd autotools_ls jsonls
+          --   yamlls nil_ls bashls
+          vim.notify(
+            "LspInstall: servers are nix-managed (build-time); runtime installs disabled. Available: pyright ruff lua_ls clangd autotools_ls jsonls yamlls nil_ls bashls",
+            vim.log.levels.WARN
+          )
         end
       '';
       nargs = "+";
@@ -449,9 +447,23 @@ in {
         };
       };
       grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
+        tree-sitter-bash
+        tree-sitter-c
         tree-sitter-comment
+        tree-sitter-css
+        tree-sitter-html
+        tree-sitter-javascript
+        tree-sitter-json
+        tree-sitter-lua
+        tree-sitter-make
+        tree-sitter-markdown
         tree-sitter-markdown-inline
+        tree-sitter-nix
+        tree-sitter-python
         tree-sitter-regex
+        tree-sitter-rust
+        tree-sitter-typescript
+        tree-sitter-yaml
       ];
     };
 
@@ -2377,7 +2389,7 @@ in {
         end
         mason.setup({
           ui = {
-            check_outdated_packages_on_open = true,
+            check_outdated_packages_on_open = false,
             width = 0.8,
             height = 0.9,
             border = "rounded",
@@ -2399,22 +2411,14 @@ in {
             package_uninstalled = "◍",
           },
           install_root_dir = join_paths(vim.fn.stdpath "data", "mason"),
-          -- NOTE: nixvim manages the PATH; do not let mason's bootstrap change it
+          -- NOTE: everything is nix-managed (build-time); Mason exists only as
+          -- an informational UI (:Mason: installed servers come from the nix
+          -- store). No PATH, no registries, no network.
           PATH = "skip",
-          pip = {
-            upgrade_pip = false,
-            install_args = {},
-          },
-          log_level = vim.log.levels.INFO,
-          max_concurrent_installers = 4,
           registries = {
             "lua:mason-registry.index",
-            "github:mason-org/mason-registry",
           },
-          providers = {
-            "mason.providers.registry-provider",
-            "mason.providers.client",
-          },
+          providers = {},
         })
 
         -- LunarVim ex commands for mason

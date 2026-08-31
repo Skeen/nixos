@@ -71,6 +71,8 @@
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
     formatter.aarch64-linux = nixpkgs.legacyPackages.aarch64-linux.alejandra;
 
+    nixosTests.golem = import ./hosts/golem/vm-test.nix {inherit inputs;};
+
     nixosConfigurations = {
       # Work laptop
       anvil = nixpkgs.lib.nixosSystem {
@@ -95,6 +97,24 @@
         system = "x86_64-linux";
         specialArgs = inputs; # pass flake inputs to modules
         modules = [./hosts/stronghold];
+      };
+      # Hetzner Cloud Server (AI workloads: Kubernetes with Kata MicroVM sandboxes)
+      golem = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = inputs; # pass flake inputs to modules
+        modules = [./hosts/golem];
+      };
+      # golem as a locally-runnable test VM:
+      #   nix build --no-link --override-input secrets <stub-or-real> .#golemVm
+      #   ./result/bin/run-golem-vm
+      golemVm = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = inputs;
+        modules = [
+          ./hosts/golem
+          ./hosts/golem/vm-overrides.nix
+          ({...}: {virtualisation.vmVariant.enable = true;})
+        ];
       };
       # Home Media Server
       # Bootstrapped using: https://github.com/Skeen/nixos-on-odroid-m1s
