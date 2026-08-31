@@ -1,6 +1,13 @@
 # Clank credentials proxy. Public template; the `{$VAR}` token values are
 # injected via agenix at activation (clank passes no env to the proxy).
 
+# Model Providers
+:1655 {
+	reverse_proxy https://api.greenpt.ai {
+		header_up Authorization "Bearer {$CLANK_GREENPT_TOKEN}"
+	}
+}
+
 # MCP Servers
 :1394 {
 	reverse_proxy https://mcp.kagi.com {

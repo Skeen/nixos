@@ -45,6 +45,12 @@
                   headerTimeout = 120000;
                   chunkTimeout = 300000;
                 };
+                # GreenPT routes through the credentials-injecting proxy like
+                # the Magenta tools, so the sandbox only sees the dummy key.
+                provider.greenpt.options = {
+                  apiKey = "dummy";
+                  baseURL = "http://clank-proxy:1655/v1";
+                };
               };
             };
           };
