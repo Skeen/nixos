@@ -1,12 +1,9 @@
+# LunarVim-compatible NixVim editor (see ../../modules/editor) plus the
+# impermanence cache directories the old LunarVim setup used.
 {pkgs, ...}: {
-  environment.systemPackages = with pkgs; [
-    (lunarvim.override {
-      viAlias = true;
-      vimAlias = true;
-      nvimAlias = true;
-    })
+  imports = [
+    ../../modules/editor
   ];
-  environment.variables.EDITOR = "lvim";
 
   # These files are just cache which can be removed whenever
   environment.persistence."/nix/cache" = {

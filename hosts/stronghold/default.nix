@@ -20,7 +20,7 @@
     ../../modules/base/git.nix
     ../../modules/base/fish.nix
     ../../modules/base/nixos-containers.nix
-    ./lunarvim.nix
+    ./nvim.nix
     ./syncthing2.nix
     ./synapse.nix
     ./traggo.nix

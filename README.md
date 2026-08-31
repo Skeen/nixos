@@ -161,6 +161,26 @@ source.
 
 Drop `--disk-encryption-keys` for unencrypted hosts.
 
+
+## Editor (lvim)
+
+LunarVim (upstream-abandoned) was replaced by a [NixVim](https://github.com/nix-community/nixvim)
+configuration that reproduces LunarVim 1.4's default behaviour, see
+`modules/editor/`. All hosts get `lvim` (plus `vi`/`vim`/`nvim` aliases) with
+`NVIM_APPNAME=lvim`, so existing `~/.config/lvim` state keeps working.
+
+### Behavior notes
+
+The NixVim build matches LunarVim 1.4 defaults (options, keymaps, leader menus,
+LSP buffer mappings, diagnostics, telescope/which-key/tree/gitsigns/configs)
+and keeps existing LunarVim state (`~/.config/lvim`, `~/.local/share/lvim`,
+`~/.cache/lvim`) because the editor still runs with `NVIM_APPNAME=lvim`.
+Verified equivalent by a 20-scenario keystroke harness driving both editors in
+tmux and diffing the resulting work trees (see
+`/tmp/opencode/harness/run-scenario.sh` in the dev sandbox). Known cosmetic
+differences: which-key v3 footer wording ("back" vs "go up one level") and
+`LvimReload` being a best-effort no-op (the config is nix-managed).
+
 ## References
 
 Heavily inspired by: https://git.caspervk.net/caspervk/nixos

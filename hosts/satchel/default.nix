@@ -22,6 +22,7 @@
     ../../modules/server/ssh.nix
     ./monitors.nix
     ./xfce/default.nix
+    ../../modules/editor
   ];
 
   nix = {
@@ -168,11 +169,6 @@
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
     git
-    (lunarvim.override {
-      viAlias = true;
-      vimAlias = true;
-      nvimAlias = true;
-    })
   ];
 
   # This value determines the NixOS release from which the default
