@@ -409,7 +409,7 @@ in {
       # LV spec: lazy = true
       lazyLoad = {
         enable = true;
-        settings.trigger = ["User FileOpened"];
+        settings.event = ["User FileOpened"];
       };
     };
 
@@ -465,6 +465,28 @@ in {
           ghost_text = false;
           native_menu = false;
         };
+        sources = [
+          {name = "copilot";}
+          {
+            name = "nvim_lsp";
+            entry_filter.__raw = ''
+              function(entry, ctx)
+                local kind = require("cmp.types.lsp").CompletionItemKind[entry:get_kind()]
+                return not (kind == "Snippet" and ctx.prev_context.filetype == "java")
+              end
+            '';
+          }
+          {name = "path";}
+          {name = "luasnip";}
+          {name = "cmp_tabnine";}
+          {name = "nvim_lua";}
+          {name = "buffer";}
+          {name = "calc";}
+          {name = "emoji";}
+          {name = "treesitter";}
+          {name = "crates";}
+          {name = "tmux";}
+        ];
         formatting = {
           fields = ["kind" "abbr" "menu"];
           max_width = 0;
@@ -618,21 +640,18 @@ in {
 
     # -- UI ---------------------------------------------------------------
     telescope = {
-      # LV spec: cmd = "Telescope" (+ fzf ext lazy)
-      lazyLoad = {
-        enable = true;
-        settings.cmd = ["Telescope"];
-      };
       enable = true;
       # lvim.builtin.telescope: theme = "dropdown"
       settings.theme.__raw = "require('telescope.themes').get_dropdown({})";
       settings = {
         defaults = {
-          prompt_prefix = "  ";
-          selection_caret = "  ";
+          prompt_prefix = "";
+          selection_caret = "";
           entry_prefix = "  ";
           initial_mode = "insert";
           selection_strategy = "reset";
+          sorting_strategy = "ascending";
+          layout_strategy = "center";
           vimgrep_arguments = [
             "rg"
             "--color=never"
@@ -1843,14 +1862,6 @@ in {
 
     # -- project (lvim.builtin.project) ------------------------------------
     project-nvim = {
-      # LV spec: event = "VimEnter", cmd = "Telescope projects"
-      lazyLoad = {
-        enable = true;
-        settings = {
-          event = ["VimEnter"];
-          cmd = ["Telescope projects"];
-        };
-      };
       enable = true;
       # LV loads the telescope "projects" extension (:Telescope projects)
       enableTelescope = true;
@@ -1984,11 +1995,6 @@ in {
 
     # -- DAP (lvim.builtin.dap) --------------------------------------------
     dap = {
-      # LV spec: lazy = true
-      lazyLoad = {
-        enable = true;
-        settings.trigger = ["User FileOpened"];
-      };
       enable = true;
       signs = {
         dapBreakpoint = {
@@ -2013,11 +2019,6 @@ in {
     };
 
     dap-ui = {
-      # LV spec: lazy = true
-      lazyLoad = {
-        enable = true;
-        settings.trigger = ["User FileOpened"];
-      };
       enable = true;
       settings.layouts.__raw = ''
         {

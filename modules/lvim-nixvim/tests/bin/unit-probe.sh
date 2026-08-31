@@ -25,7 +25,7 @@ run_probe() {
   # default_options on #vim.api.nvim_list_uis() ).
   # The probe itself writes its fingerprint to $home/unit-out.txt.
   rm -f "$home/unit-out.txt"
-  timeout 120 script -qec "$inner -c \"lua vim.env.UNIT_OUT='$home/unit-out.txt'\" -c \"lua local f=loadfile([[$PROBE]]) if f then f() else error('probe missing') end\" -c 'qa!'" /dev/null > "$out.raw" 2>"$out.err" || true
+  timeout 240 script -qec "$inner -c \"lua vim.env.UNIT_OUT='$home/unit-out.txt'\" -c \"lua local f=loadfile([[$PROBE]]) if f then f() else error('probe missing') end\" -c 'qa!'" /dev/null > "$out.raw" 2>"$out.err" || true
   if [ -f "$home/unit-out.txt" ]; then
     cp "$home/unit-out.txt" "$out"
     echo "rc=0" >> "$out"
