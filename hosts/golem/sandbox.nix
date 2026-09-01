@@ -65,6 +65,10 @@
         # should try to autologin on a getty (there is no console).
         services.getty.autologinUser = lib.mkForce null;
 
+        # "*" = password login impossible, but the account is NOT locked.
+        # A locked root ("!" hash) makes sshd refuse even pubkey auth.
+        users.users.root.hashedPassword = lib.mkForce "*";
+
         # Extra modules: Magenta (gitlab, grafana-logs, kagi) + berget auth,
         # matching modules/base/clank.nix on the dev hosts.
         imports = let
@@ -99,8 +103,9 @@
               };
 
               # Keep the sandbox alive: a tmux session running opencode, so
-              # `kubectl exec` (or an agent harness) can interact with it.
-              # This replaces clank's getty approach without CWD forwarding.
+              # a shell (kubectl exec / SSH, see sandbox-sshd) can interact
+              # with it. This replaces clank's getty approach without CWD
+              # forwarding.
               environment.systemPackages = [pkgs.tmux];
               systemd.services.sandbox-tmux = {
                 description = "Start the coding-agent tmux session";
@@ -116,6 +121,35 @@
                   ${tmux}/bin/tmux send-keys -t clank \
                     "cd /workspace; exec ${opencodePackage}/bin/opencode" Enter
                 '';
+              };
+
+              # SSH into the sandbox: kubectl exec cannot attach to a
+              # systemd-as-PID1 container under kata (EBUSY,
+              # kata-containers#10733), so sshd is the reliable shell path.
+              # The public keys come from the clank-sandbox-keys Secret,
+              # mounted read-only at /etc/sandbox-keys; read them straight
+              # from the mount so there is no copy step that could race
+              # sshd. (Not /run: the container's own systemd mounts a tmpfs
+              # over /run at boot and would hide the volume.)
+              services.openssh = {
+                enable = true;
+                # Key-only: sandboxes are reached over the pod network
+                # through kubectl port-forward or the flannel network.
+                settings.PasswordAuthentication = false;
+                settings.KbdInteractiveAuthentication = false;
+                settings.PermitRootLogin = "prohibit-password";
+                settings.AuthorizedKeysFile = "/etc/sandbox-keys/authorized_keys";
+                # The k8s Secret volume dir is 1777 (tmpfs): sshd's default
+                # StrictModes would refuse to read keys from a world-writable
+                # path, so relax it inside the sandbox.
+                settings.StrictModes = false;
+                # No PAM: the container has no local passwords (key-only) and
+                # sandbox PAM account rules deny root entirely
+                # ("Access denied for user root by PAM account configuration").
+                settings.UsePAM = false;
+                # No host keys to persist across restarts of a stateless
+                # sandbox; generate at boot instead.
+                startWhenNeeded = false;
               };
             }
           )
@@ -195,10 +229,16 @@
   '';
 
   # --- Kubernetes objects ---------------------------------------------------
+  # All objects carry the addon-manager mode label: kube-addon-manager only
+  # reconciles objects matching its `addonmanager.kubernetes.io/mode`
+  # label selector, so titles without the label would be ignored.
   namespace = {
     apiVersion = "v1";
     kind = "Namespace";
-    metadata.name = "sandboxes";
+    metadata = {
+      name = "sandboxes";
+      labels."addonmanager.kubernetes.io/mode" = "Reconcile";
+    };
   };
 
   caddyfileConfigMap = {
@@ -207,6 +247,7 @@
     metadata = {
       name = "clank-caddyfile";
       namespace = "sandboxes";
+      labels."addonmanager.kubernetes.io/mode" = "Reconcile";
     };
     data."Caddyfile" = caddyfile;
   };
@@ -217,6 +258,7 @@
     metadata = {
       name = "clank";
       namespace = "sandboxes";
+      labels."addonmanager.kubernetes.io/mode" = "Reconcile";
     };
     spec.podTemplate.spec = {
       # Kata (QEMU MicroVM) runtime, as registered in agent-sandbox.nix.
@@ -277,6 +319,14 @@
               mountPath = "/etc/clank";
               readOnly = true;
             }
+            {
+              # Public SSH keys allowed into the sandbox (clank-sandbox-keys
+              # Secret). /etc/sandbox-keys, not /run/...: the container's
+              # systemd mounts a tmpfs over /run at boot.
+              name = "sandbox-keys";
+              mountPath = "/etc/sandbox-keys";
+              readOnly = true;
+            }
           ];
         }
         # The per-sandbox Caddy credentials-proxy sidecar, as in clank, but
@@ -322,6 +372,16 @@
             name = "clank-caddyfile";
           };
         }
+        {
+          name = "sandbox-keys";
+          secret = {
+            secretName = "clank-sandbox-keys";
+            # Optional: without the Secret (fresh VMs before the sync
+            # oneshot ran) the pod still starts; sshd just stays keyless
+            # (the mount dir is empty and the oneshot fails safely).
+            optional = true;
+          };
+        }
       ];
     };
   };
@@ -332,6 +392,7 @@
     metadata = {
       name = "clank";
       namespace = "sandboxes";
+      labels."addonmanager.kubernetes.io/mode" = "Reconcile";
     };
     spec = {
       # One pre-warmed Kata VM to make claims near-instant. Cheap enough on a
@@ -348,10 +409,49 @@
     metadata = {
       name = "clank";
       namespace = "sandboxes";
+      labels."addonmanager.kubernetes.io/mode" = "Reconcile";
     };
     spec = {
       warmPoolRef.name = "clank";
       lifecycle.shutdownPolicy = "Delete";
+    };
+  };
+
+  # SSH into the claimed sandbox: a NodePort Service maps golem:32222 to the
+  # sandbox's sshd (port 22). kube-proxy does the DNAT to the pod IP directly,
+  # which - unlike kubectl exec (broken for kata+systemd containers,
+  # kata-containers#10733) and kubectl port-forward (dials 127.0.0.1 in the
+  # host-side CNI netns, where nothing listens under kata) - works with any
+  # stock ssh client:
+  #
+  #   ssh root@golem.example.dk -p 32222        # from anywhere
+  #   ssh clank-ssh.sandboxes.svc.cluster.local # from inside the cluster
+  #   ssh -J root@golem root@clank-ssh.sandboxes.svc.cluster.local
+  #
+  # The selector pins the claimed Sandbox's pod via the controller-set
+  # sandbox-name-hash label (hash of the sandbox name "clank", stable across
+  # boots and claim recreations), so remote shells always land in the
+  # working sandbox and never in an idle warm-pool pod.
+  sshService = {
+    apiVersion = "v1";
+    kind = "Service";
+    metadata = {
+      name = "clank-ssh";
+      namespace = "sandboxes";
+      labels."addonmanager.kubernetes.io/mode" = "Reconcile";
+    };
+    spec = {
+      type = "NodePort";
+      selector."agents.x-k8s.io/sandbox-name-hash" = "c335e302";
+      ports = [
+        {
+          name = "ssh";
+          port = 22;
+          targetPort = 22;
+          nodePort = 32222;
+          protocol = "TCP";
+        }
+      ];
     };
   };
 in {
@@ -367,18 +467,37 @@ in {
     group = "kubernetes";
   };
 
+  # --- The sandbox SSH keys, from agenix -----------------------------------
+  # Public keys minted into the sandboxes' /root/.ssh/authorized_keys.
+  # Encrypted age file holds the public half (no harm in leaking, but keeps
+  # the repo tidy); blank fallback for fresh VMs without the age identity -
+  # SSH then simply has no authorized keys.
+  age.secrets.clank-sandbox-keys = {
+    file = "${secrets}/secrets/clank-sandbox-keys.pub.age";
+    mode = "440";
+    owner = "root";
+    group = "kubernetes";
+  };
+
   systemd.services.clank-proxy-secret = {
     description = "Sync clank proxy credentials into the Kubernetes Secret";
     wantedBy = ["multi-user.target"];
     after = ["kube-apiserver.service"];
-    requires = ["kube-apiserver.service"];
+    # wants (not requires): kube-apiserver crash-loops during early cert
+    # bootstrap; requires would propagate each stop and TERM our oneshots
+    # until systemd rates-limits them into permanent failure.
+    wants = ["kube-apiserver.service"];
     path = [pkgs.kubernetes];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      TimeoutStartSec = "10min";
+      # Boot-time race: the apiserver (and cfssl) can still be starting; a
+      # TERM during the wait must not exhaust systemd's default retries.
+      Restart = "on-failure";
+      RestartSec = "15s";
     };
     script = ''
-      set -euo pipefail
       export KUBECONFIG=/etc/${config.services.kubernetes.pki.etcClusterAdminKubeconfig}
 
       echo "Waiting for the apiserver to become ready..."
@@ -397,9 +516,70 @@ in {
         sleep 2
       done
 
-      # create/update the Secret from the agenix-rendered env file
+      # create/update the Secret from the agenix-rendered env file. agenix
+      # cannot decrypt without the host's private key (fresh installs, CI
+      # VMs): fall back to blank values rather than fail the boot - Caddy
+      # simply proxies without credentials until the next rebuild switch on
+      # the real host, where decryption succeeds.
+      envFile=${config.age.secrets.clank-caddyfile-env.path}
+      if ! [ -r "$envFile" ]; then
+        echo "WARNING: ${config.age.secrets.clank-caddyfile-env.path} not readable (age identity missing?), creating the Secret with blank values"
+        envFile=${
+        pkgs.writeText "clank-proxy-credentials.empty" ""
+      }
+      fi
+
       kubectl -n sandboxes create secret generic clank-proxy-credentials \
-        --from-env-file=${config.age.secrets.clank-caddyfile-env.path} \
+        --from-env-file="$envFile" \
+        --dry-run=client -o yaml | kubectl apply -f -
+    '';
+  };
+
+  # Sync the sandbox SSH public keys into a Kubernetes Secret that the
+  # SandboxTemplate mounts into every sandbox (see sandbox-sshd-keys inside
+  # the image). agenix fallback, same as above.
+  systemd.services.clank-sandbox-keys = {
+    description = "Sync sandbox SSH public keys into the Kubernetes Secret";
+    wantedBy = ["multi-user.target"];
+    after = ["kube-apiserver.service"];
+    # wants (not requires): kube-apiserver crash-loops during early cert
+    # bootstrap; requires would propagate each stop and TERM our oneshots
+    # until systemd rates-limits them into permanent failure.
+    wants = ["kube-apiserver.service"];
+    path = [pkgs.kubernetes];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      TimeoutStartSec = "10min";
+      # Boot-time race: the apiserver (and cfssl) can still be starting; a
+      # TERM during the wait must not exhaust systemd's default retries.
+      Restart = "on-failure";
+      RestartSec = "15s";
+    };
+    script = ''
+      export KUBECONFIG=/etc/${config.services.kubernetes.pki.etcClusterAdminKubeconfig}
+
+      echo "Waiting for the apiserver to become ready..."
+      for i in $(seq 1 120); do
+        if kubectl get --raw=/readyz >/dev/null 2>&1; then
+          break
+        fi
+        sleep 2
+      done
+
+      # Prefer the locally generated key (clank-sandbox-ssh-key service); the
+      # age file serves fresh installs where the local key is not there yet.
+      keysFile=/etc/clank/golem-ed25519.pub
+      if ! [ -r "$keysFile" ] || ! [ -s "$keysFile" ]; then
+        keysFile=${config.age.secrets.clank-sandbox-keys.path}
+      fi
+      if ! [ -r "$keysFile" ] || ! [ -s "$keysFile" ]; then
+        echo "WARNING: no sandbox SSH keys (neither /etc/clank/golem-ed25519.pub nor $keysFile), creating the Secret with no keys"
+        keysFile=${pkgs.writeText "clank-sandbox-keys.empty" ""}
+      fi
+
+      kubectl -n sandboxes create secret generic clank-sandbox-keys \
+        --from-file=authorized_keys="$keysFile" \
         --dry-run=client -o yaml | kubectl apply -f -
     '';
   };
@@ -411,6 +591,83 @@ in {
     clank-sandboxtemplate = sandboxTemplate;
     clank-sandboxwarmpool = warmPool;
     clank-sandboxclaim = sandboxClaim;
+    clank-ssh = sshService;
+  };
+
+  # The SSH keypair golem uses for sandboxes: the private half is generated
+  # once on the host (persisted via impermanence like the ssh host key), the
+  # public half is pushed into the clank-sandbox-keys Secret by the sync
+  # oneshot. The age file in the secrets repo serves fresh installs and
+  # other operators (who usually want their own key in there anyway).
+  systemd.services.clank-sandbox-ssh-key = {
+    description = "Ensure the golem-to-sandbox SSH keypair exists";
+    wantedBy = ["multi-user.target"];
+    before = ["clank-sandbox-keys.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      d=/etc/clank
+      mkdir -p "$d"
+      if ! [ -s "$d/golem-ed25519" ]; then
+        ${pkgs.openssh}/bin/ssh-keygen -q -t ed25519 -N "" -f "$d/golem-ed25519" -C golem-sandboxes
+      fi
+      chmod 600 "$d/golem-ed25519"
+    '';
+  };
+
+  # RBAC for the addon manager: NixOS only grants it rights inside
+  # kube-system (+ cluster-wide list). Our addons need to create the
+  # `sandboxes` namespace and manage agent-sandbox resources in it.
+  # bootstrapAddons are applied with cluster-admin rights at pki start.
+  services.kubernetes.addonManager.bootstrapAddons = {
+    sandboxes-addon-manager-cr = {
+      apiVersion = "rbac.authorization.k8s.io/v1";
+      kind = "ClusterRole";
+      metadata.name = "kube-addon-manager-sandboxes";
+      rules = [
+        {
+          apiGroups = [""];
+          resources = ["namespaces"];
+          verbs = ["get" "list" "watch" "create" "update" "patch"];
+        }
+        {
+          apiGroups = ["extensions.agents.x-k8s.io" "agents.x-k8s.io"];
+          resources = ["*"];
+          verbs = ["*"];
+        }
+        {
+          # Keep core resources in their own rule: merging "" with named
+          # groups makes kubectl/authz resolve them to the named group only.
+          apiGroups = [""];
+          resources = ["namespaces" "configmaps" "secrets" "pods" "services" "events" "persistentvolumeclaims"];
+          verbs = ["get" "list" "watch" "create" "update" "patch" "delete"];
+        }
+        {
+          apiGroups = ["apps" "batch"];
+          resources = ["deployments" "pods" "services" "configmaps" "secrets" "events" "persistentvolumeclaims"];
+          verbs = ["get" "list" "watch" "create" "update" "patch" "delete"];
+        }
+      ];
+    };
+    sandboxes-addon-manager-crb = {
+      apiVersion = "rbac.authorization.k8s.io/v1";
+      kind = "ClusterRoleBinding";
+      metadata.name = "kube-addon-manager-sandboxes";
+      roleRef = {
+        apiGroup = "rbac.authorization.k8s.io";
+        kind = "ClusterRole";
+        name = "kube-addon-manager-sandboxes";
+      };
+      subjects = [
+        {
+          apiGroup = "rbac.authorization.k8s.io";
+          kind = "User";
+          name = "system:kube-addon-manager";
+        }
+      ];
+    };
   };
 
   # Seed the sandbox + proxy images into containerd before kubelet starts

@@ -48,8 +48,35 @@ in {
   # kata on the host PATH for manual debugging (`kata-runtime exec ...`)
   environment.systemPackages = [kata];
 
+  # Kata's default config starts each VM with 1 vCPU and hot-adds more to
+  # match the container's CPU request. ACPI CPU hotplug does not work in
+  # nested QEMU ("failed to hot add vCPUs: only 0 vCPUs of 1 were added"),
+  # so pre-allocate enough vCPUs to satisfy the largest sandbox request and
+  # skip hotplug entirely. The shim picks /etc/kata-containers/ over the
+  # store copy automatically.
+  #
+  # The kernel_params override drops upstream's "cgroup_no_v1=all
+  # systemd.unified_cgroup_hierarchy=1". Forcing the guest to cgroup v1
+  # (the would-be fix for exec) demonstrably hangs the kata agent here:
+  # the shim stops answering and StartContainer times out, so shells into
+  # systemd-as-PID1 sandboxes stay broken under kata 3.16 for exec
+  # (kata-containers#10733; fixed upstream in 4.2 via #13627). The
+  # supported way in is SSH through the clank-ssh NodePort Service
+  # (see sandbox.nix: sshd inside the sandbox image; ssh root@golem -p 32222).
+  environment.etc."kata-containers/configuration.toml".source = pkgs.runCommand "kata-configuration.toml" {} ''
+    sed -E \
+      -e 's/^default_vcpus *=.*/default_vcpus = 4/' \
+      -e 's/^default_maxvcpus *=.*/default_maxvcpus = 4/' \
+      -e 's|^kernel_params *=.*|kernel_params = ""|' \
+      "${kata}/share/defaults/kata-containers/configuration.toml" > "$out"
+  '';
+
   # /dev/kvm is required by Kata's default QEMU configuration
   users.groups.kvm = {};
+
+  # The kubelet preStart seeds images (incl. the ~700MB sandbox image) via
+  # `ctr import`; the 90s default would kill it mid-import on slow disks.
+  systemd.services.kubelet.serviceConfig.TimeoutStartSec = "30min";
 
   # --- Cluster -------------------------------------------------------------
   services.kubernetes = {
@@ -101,8 +128,9 @@ in {
     addons.dns.replicas = 1; # single node
   };
 
-  # Flannel uses the interface for the default route (enp1s0 on Hetzner).
-  services.flannel.iface = "enp1s0";
+  # Flannel uses the default-route interface (resolved dynamically; both the
+  # Hetzner NIC and the test VM NIC do DHCP). Let flannel autodetect it.
+  services.flannel.iface = lib.mkDefault null;
 
   # The apiserver cert is issued for golem.cluster.local (masterAddress) + the
   # node IP; make /etc/hosts resolve that name locally so the local kubeconfig

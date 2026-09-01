@@ -17,16 +17,17 @@
   # /etc/resolv.conf, which would point at a loopback address inside its own
   # network namespace and silently break upstream DNS forwarding.
   services.resolved.enable = false;
-  networking.nameservers = [
-    "185.12.64.1" # Hetzner dns1/fdns1
-    "185.12.64.2"
-    "2a01:4ff:ff00::add:1"
-    "2a01:4ff:ff00::add:2"
-  ];
   networking.resolvconf.useLocalResolver = false;
+  # Static resolvers injected into resolvconf.conf (networkd's DHCP-provided
+  # DNS does not reliably reach openresolv in the networkd-only setup).
+  networking.resolvconf.extraConfig = ''
+    name_servers='185.12.64.1 185.12.64.2 2a01:4ff:ff00::add:1 2a01:4ff:ff00::add:2'
+  '';
 
-  systemd.network.networks."10-enp1s0" = {
-    matchConfig.Name = "enp1s0";
+  # Hetzner Cloud: the NIC is enp1s0 (PCI slot naming). VMs (e.g. the
+  # golemVm test run) present the same interface as eth0, so match both.
+  systemd.network.networks."10-wan" = {
+    matchConfig.Name = "enp1s0 eth0";
     networkConfig.DHCP = "yes";
     # Routed IPv6 via the link-local gateway (Hetzner style)
     routes = [

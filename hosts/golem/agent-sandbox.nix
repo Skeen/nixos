@@ -30,12 +30,20 @@ in {
     # failed addons anyway (it loops forever), so waiting here is safe.
     after = ["kube-apiserver.service"];
     wants = ["kube-addon-manager.service"];
-    requires = ["kube-apiserver.service"];
+    # wants (not requires): kube-apiserver crash-loops during early cert
+    # bootstrap; requires would propagate each stop and TERM our oneshots
+    # until systemd rates-limits them into permanent failure.
     # Wait for the apiserver to accept connections, then apply.
     path = [pkgs.kubernetes];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      TimeoutStartSec = "10min";
+      # Kill-switch races: at boot the unit can be stopped (TERM) while
+      # still waiting for the apiserver; without this systemd marks the
+      # oneshot permanently failed after its 5 default retries.
+      Restart = "on-failure";
+      RestartSec = "15s";
     };
     script = ''
       set -euo pipefail
@@ -60,7 +68,8 @@ in {
         metadata.name = "kata";
         handler = "kata";
         overhead = {
-          fixed = {
+          # qemu VM fixed cost (podFixed, not per-container)
+          podFixed = {
             cpu = "250m";
             memory = "128Mi";
           };
