@@ -92,6 +92,12 @@
         specialArgs = inputs; # pass flake inputs to modules
         modules = [./hosts/stronghold];
       };
+      # Hetzner Cloud Server (AI workloads)
+      golem = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = inputs; # pass flake inputs to modules
+        modules = [./hosts/golem];
+      };
       # Home Media Server
       # Bootstrapped using: https://github.com/Skeen/nixos-on-odroid-m1s
       # After bootstrap, clone this repository and rebuild switch, then reboot
