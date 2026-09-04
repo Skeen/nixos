@@ -16,6 +16,7 @@
     ./home-manager.nix
     ./shell.nix
     ./agenix.nix
+    ./ssh-key.nix
     ./network.nix
     ./housekeeping.nix
     ../../modules/server/ssh.nix
