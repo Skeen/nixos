@@ -13,10 +13,11 @@
   systemd.network.networks."10-wan" = {
     matchConfig.Name = "enp1s0 eth0";
     networkConfig.DHCP = "yes";
-    # TODO: pin the Hetzner-assigned /64 here like stronghold's network.nix
-    # once the instance's address is known:
-    #   address = ["2a01:4f9:...::1/64"];
-    #
+    # Hetzner Cloud routes a /64 to the instance but hands out no address over
+    # SLAAC or DHCPv6, so without this the host has a default route and no
+    # source address, i.e. no working IPv6 at all. Pin the first address of the
+    # assigned prefix, the same convention stronghold's network.nix follows.
+    address = ["2a01:4f9:c011:8694::1/64"];
     # Routed IPv6 via the link-local gateway (Hetzner style)
     routes = [
       {
