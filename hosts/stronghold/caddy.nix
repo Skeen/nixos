@@ -1,4 +1,26 @@
-{ ... }: {
+{ self, lib, pkgs, ... }:
+let
+  # RFC 9116 security.txt
+  #
+  # Expires is stamped at build time from the flake's own last-modified
+  # timestamp, so it moves forward on every redeploy instead of needing a
+  # manual bump.
+  #
+  # lastModifiedDate is UTC in YYYYMMDDHHMMSS form. We simply add 1 year to the
+  # 1st of the current month snapped to midnight.
+  stamp = self.lastModifiedDate;
+  at = start: len: builtins.substring start len stamp;
+  lastModifiedYear = lib.toInt (at 0 4);
+  lastModifiedMonth = at 4 2;
+  expires = "${toString (lastModifiedYear + 1)}-${lastModifiedMonth}-01T00:00:00.000Z";
+
+  securityTxt = pkgs.writeTextDir ".well-known/security.txt" ''
+    Contact: mailto:security@awful.engineer
+    Expires: ${expires}
+    Canonical: https://awful.engineer/.well-known/security.txt
+    Preferred-Languages: en
+  '';
+in {
   # HTTP(s)
   networking.firewall.allowedTCPPorts = [ 80 443 8448 ];
   # Needed for QUIC / HTTP/3
@@ -49,7 +71,14 @@
 
     virtualHosts."awful.engineer" = {
       extraConfig = ''
-        respond `{"hello": "world"}`
+        handle /.well-known/security.txt {
+          root * ${securityTxt}
+          header Content-Type "text/plain; charset=utf-8"
+          file_server
+        }
+        handle {
+          respond `{"hello": "world"}`
+        }
       '';
     };
 
