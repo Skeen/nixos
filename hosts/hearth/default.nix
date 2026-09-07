@@ -184,6 +184,8 @@
     })
     # xclip is needed for clipboard control from lunarvim (i.e. space+y)
     xclip
+    htop
+    tree
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

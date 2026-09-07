@@ -207,6 +207,8 @@
       vimAlias = true;
       nvimAlias = true;
     })
+    htop
+    tree
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

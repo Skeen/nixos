@@ -173,6 +173,8 @@
       vimAlias = true;
       nvimAlias = true;
     })
+    htop
+    tree
   ];
 
   # This value determines the NixOS release from which the default
