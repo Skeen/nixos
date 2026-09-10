@@ -177,13 +177,17 @@
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
     git
-    (lunarvim.override {
+    # xclip is bundled into lunarvim's own PATH rather than installed system
+    # wide, as it is only needed for clipboard control from lunarvim
+    # (i.e. space+y). The aliases below are symlinks to the wrapped lvim, so
+    # they pick it up too.
+    ((lunarvim.override {
       viAlias = true;
       vimAlias = true;
       nvimAlias = true;
-    })
-    # xclip is needed for clipboard control from lunarvim (i.e. space+y)
-    xclip
+    }).overrideAttrs (old: {
+      runtimeDeps = old.runtimeDeps ++ [ xclip ];
+    }))
     htop
     tree
   ];
