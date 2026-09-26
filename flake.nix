@@ -17,6 +17,13 @@
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
     };
+    mobile-nixos = {
+      # Not a flake: consumed as a source tree and imported as NixOS modules
+      # (see hosts/relic/mobile-nixos.nix). There are no release branches,
+      # `development` is the only one, so bump it deliberately.
+      url = "github:mobile-nixos/mobile-nixos/development";
+      flake = false;
+    };
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
@@ -115,6 +122,15 @@
         system = "aarch64-linux";
         specialArgs = inputs; # pass flake inputs to modules
         modules = [./hosts/coffer];
+      };
+      # Phone (OnePlus 6, Mobile NixOS device "oneplus-enchilada") running Phosh
+      # Built from nixpkgs-unstable: Mobile NixOS tracks nixos-unstable and no
+      # longer evaluates against 25.05
+      # Installed with fastboot, see README "Installing relic"
+      relic = inputs.nixpkgs-unstable.lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = inputs; # pass flake inputs to modules
+        modules = [./hosts/relic];
       };
     };
   };
