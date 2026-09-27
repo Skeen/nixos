@@ -17,6 +17,10 @@
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
     };
+    jovian = {
+      url = "github:Jovian-Experiments/Jovian-NixOS";
+      inputs.nixpkgs.follows = "nixpkgs-unstable"; # jovian only supports nixos-unstable
+    };
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
@@ -61,6 +65,7 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgs-unstable,
     ...
   } @ inputs: {
     # https://kamadorueda.com/alejandra/
@@ -79,6 +84,17 @@
         system = "x86_64-linux";
         specialArgs = inputs; # pass flake inputs to modules
         modules = [./hosts/satchel];
+      };
+      # Handheld (Valve Steam Deck)
+      # Jovian only supports nixos-unstable, so jester is built from
+      # nixpkgs-unstable (and home-manager-unstable, see its home-manager.nix).
+      # Jovian has no binary cache: the Steam Deck kernel and mesa are built
+      # from source, so build on a big machine (e.g. hearth) and deploy with
+      # --target-host rather than rebuilding on the Deck itself.
+      jester = nixpkgs-unstable.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = inputs; # pass flake inputs to modules
+        modules = [./hosts/jester];
       };
       # Home desktop
       hearth = nixpkgs.lib.nixosSystem {
