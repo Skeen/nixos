@@ -182,6 +182,10 @@ in {
     };
   };
 
+  # chan_quectel has crash bugs (e.g. `quectel show device state` before the
+  # modem has registered): come back up instead of staying down
+  systemd.services.asterisk.serviceConfig.Restart = "on-failure";
+
   # Asterisk drops to its user with initgroups(), so these apply: dialout for
   # the AT port, audio for the sound card
   users.users.asterisk.extraGroups = ["dialout" "audio"];
