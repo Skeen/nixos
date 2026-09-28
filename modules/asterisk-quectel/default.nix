@@ -150,9 +150,6 @@ in {
         msg_direct = off
         msg_storage = me
         autodeletesms = no
-        ; Turns call waiting off for the SIM at the operator (AT+CCWA=0,0,1):
-        ; chan_quectel does not hang up correctly with two calls
-        callwaiting = no
       '';
 
       "extensions.conf" = ''
