@@ -92,6 +92,13 @@ in {
     group = "root";
   };
 
+  # Expose the Traggo WebUI via Caddy
+  services.caddy.virtualHosts."traggo.awful.engineer" = {
+    extraConfig = ''
+      reverse_proxy 192.168.100.12:3030
+    '';
+  };
+
   containers.traggo = let
     traggo_base_dir = "/var/lib/traggo";
     traggo_secret_env = "/etc/traggo.env";

@@ -31,13 +31,6 @@ in {
     # ACME email account
     email = "caddy@awful.simplelogin.com";
 
-    # TODO: Move this into the traggo file?
-    virtualHosts."traggo.awful.engineer" = {
-      extraConfig = ''
-        reverse_proxy 192.168.100.12:3030
-      '';
-    };
-
     virtualHosts."awful.engineer:8448" = {
       extraConfig = ''
         reverse_proxy /_matrix/* http://192.168.100.13:8008 {
