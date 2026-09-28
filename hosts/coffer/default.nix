@@ -22,6 +22,7 @@
     ./m1s-ups.nix
     ./network.nix
     ./wghub.nix
+    ../../modules/asterisk-quectel
   ];
 
   environment.systemPackages = with pkgs; [
