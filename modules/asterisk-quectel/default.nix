@@ -123,8 +123,10 @@ in {
         ${acl "contact_"}
         [linphone]
         type = aor
-        max_contacts = 1
+        ; Up to 3 devices on the account, all ring on incoming calls
+        max_contacts = 3
         remove_existing = yes
+        remove_unavailable = yes
         qualify_frequency = 60
 
         [linphone]
