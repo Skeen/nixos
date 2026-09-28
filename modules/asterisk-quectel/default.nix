@@ -83,9 +83,7 @@ in {
         load = app_stack.so
         load = func_callerid.so
         load = func_env.so
-        load = func_json.so
         load = func_logic.so
-        load = func_strings.so
       '';
 
       "logger.conf" = ''
@@ -161,10 +159,8 @@ in {
          same => n,ExecIf($["''${CONTACTS}" = ""]?Hangup(17))
          same => n,Dial(''${CONTACTS},60)
          same => n,Hangup()
-        ; chan_quectel passes the SMS as JSON: log it as one line, then
-        ; delete it from the modem
+        ; chan_quectel passes the SMS as JSON: log it as one line
         exten => sms,1,Set(FILE(${stateDir}/sms.jsonl,,,al,u)=''${SMS})
-         same => n,QUECTEL_DELETE_SMS(quectel0,''${FILTER(0-9,''${JSON_DECODE(SMS,idx)})})
          same => n,Hangup()
 
         [linphone]
@@ -180,6 +176,19 @@ in {
          same => n,Hangup(''${IF($["''${DIALSTATUS}" = "CHANUNAVAIL"]?34:16)})
       '';
     };
+  };
+
+  # Delete the SMS the driver has read from the modem's storage (255 slots).
+  # The driver never deletes the earlier parts of multi-part SMS itself; it
+  # keeps them in its own database until the message is complete.
+  systemd.services.quectel-sms-cleanup = {
+    after = ["asterisk.service"];
+    serviceConfig.Type = "oneshot";
+    script = "${asterisk}/bin/asterisk -rx 'quectel sms delete received read quectel0'";
+  };
+  systemd.timers.quectel-sms-cleanup = {
+    wantedBy = ["timers.target"];
+    timerConfig.OnCalendar = "daily";
   };
 
   # chan_quectel has crash bugs (e.g. `quectel show device state` before the
