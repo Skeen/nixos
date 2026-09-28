@@ -11,6 +11,10 @@
     nixpkgs-unstable = {
       url = "github:NixOS/nixpkgs/nixos-unstable";
     };
+    # NetBird server for hosts/stronghold/netbird.nix (25.05 lacks the embedded identity provider)
+    nixpkgs-2605 = {
+      url = "github:NixOS/nixpkgs/nixos-26.05";
+    };
     impermanence = {
       url = "github:nix-community/impermanence";
     };

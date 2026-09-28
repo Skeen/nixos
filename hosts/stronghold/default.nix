@@ -28,6 +28,7 @@
     ./ipv6.nix
     ./network.nix
     ./wghub.nix
+    ./netbird.nix
   ];
 
   nix = {

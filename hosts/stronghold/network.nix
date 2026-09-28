@@ -54,4 +54,9 @@
     matchConfig.Name = "ve-syncthing";
     linkConfig.Unmanaged = true;
   };
+
+  systemd.network.networks."20-ve-netbird" = {
+    matchConfig.Name = "ve-netbird";
+    linkConfig.Unmanaged = true;
+  };
 }
