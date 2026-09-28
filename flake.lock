@@ -25,6 +25,22 @@
         "type": "github"
       }
     },
+    "chan-quectel": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778635808,
+        "narHash": "sha256-xaV9jFT1O58N1vEHtpqX8qr3QbUkLaAqocoi4xSTRSo=",
+        "owner": "harinworks-org",
+        "repo": "asterisk-chan-quectel",
+        "rev": "04c9e65ca80c198894e020980bc06b3c5778ae2a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "harinworks-org",
+        "repo": "asterisk-chan-quectel",
+        "type": "github"
+      }
+    },
     "clank": {
       "inputs": {
         "home-manager": [
@@ -345,6 +361,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-2605": {
+      "locked": {
+        "lastModified": 1790533781,
+        "narHash": "sha256-F+b8u43BVF5DlM0pz7JQSbtbwKy5PrHIT5zQUekXsD0=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "cf5e76507c6e23b59f7e0ffcc7baa2a39ddd8442",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-26.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-unstable": {
       "locked": {
         "lastModified": 1785967620,
@@ -431,6 +463,7 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "chan-quectel": "chan-quectel",
         "clank": "clank",
         "disko": "disko",
         "home-manager": "home-manager",
@@ -441,6 +474,7 @@
         "nix-index-database": "nix-index-database",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_3",
+        "nixpkgs-2605": "nixpkgs-2605",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "secrets": "secrets",
         "thyme": "thyme",

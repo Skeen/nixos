@@ -11,6 +11,15 @@
     nixpkgs-unstable = {
       url = "github:NixOS/nixpkgs/nixos-unstable";
     };
+    # Asterisk 22 LTS for modules/asterisk-quectel (25.05 has Asterisk 20)
+    nixpkgs-2605 = {
+      url = "github:NixOS/nixpkgs/nixos-26.05";
+    };
+    # Asterisk channel driver for the Quectel modem on coffer
+    chan-quectel = {
+      url = "github:harinworks-org/asterisk-chan-quectel";
+      flake = false;
+    };
     impermanence = {
       url = "github:nix-community/impermanence";
     };
