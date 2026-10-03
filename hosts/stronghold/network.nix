@@ -3,7 +3,7 @@
   networking.useDHCP = false;
   networking.useNetworkd = true;
 
-  # Local DNS resolver for containers
+  # Local DNS resolver for the host and the containers
   services.unbound = {
     enable = true;
     settings.server.interface = [ "192.168.100.10" ];
@@ -13,13 +13,16 @@
   # Disable systemd-resolved so it doesn't manage /etc/resolv.conf
   services.resolved.enable = false;
 
-  # Use unbound for the host itself. Use the container-facing address so
-  # containers can also use it when they copy the host's resolv.conf.
-  networking.nameservers = [ "192.168.100.10" ];
+  # Container queries reach unbound via the INPUT chain, which nat does not touch
+  networking.firewall.interfaces."ve-+".allowedUDPPorts = [ 53 ];
+  networking.firewall.interfaces."ve-+".allowedTCPPorts = [ 53 ];
 
-  # unbound sets useLocalResolver=true by default, which forces resolv.conf
-  # to use 127.0.0.1. Our resolver is on 192.168.100.10, not localhost.
-  networking.resolvconf.useLocalResolver = false;
+  # Containers inherit this file, so it must not name 127.0.0.1: their
+  # resolvconf drops every non-local server once a local one is present
+  environment.etc."resolv.conf".text = ''
+    nameserver 192.168.100.10
+    options edns0
+  '';
 
   systemd.network.networks."10-enp1s0" = {
     matchConfig.Name = "enp1s0";
