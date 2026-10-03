@@ -10,8 +10,8 @@
   domain = "netbird.awful.engineer";
   system = pkgs.stdenv.hostPlatform.system;
 
-  # Mullvad's default route lives in this table; wireguard tags its own packets
-  # with the same number so the policy rule below can let them out
+  # Mullvad's default route lives here rather than main, so it only applies to
+  # what the policy rule sends it
   mullvadTable = 100;
 
   # One Mullvad device each: two peers sharing a key fight over the one session
@@ -135,7 +135,6 @@ in {
               };
               wireguardConfig = {
                 PrivateKeyFile = mullvad_key;
-                FirewallMark = mullvadTable;
                 RouteTable = mullvadTable;
               };
               wireguardPeers = [
@@ -153,19 +152,11 @@ in {
               matchConfig.Name = "mullvad";
               address = exit.mullvadAddress;
               routingPolicyRules = [
-                # Main minus its default route, so DNS to the host survives
+                # Only traffic forwarded in from the overlay goes to Mullvad.
+                # Our own traffic, netbird's included, stays on the main table.
                 {
-                  Table = "main";
-                  SuppressPrefixLength = 0;
-                  Priority = 32764;
-                  Family = "both";
-                }
-                # Everything else to Mullvad, except WireGuard's own traffic
-                {
+                  IncomingInterface = "wt0";
                   Table = mullvadTable;
-                  FirewallMark = mullvadTable;
-                  InvertRule = true;
-                  Priority = 32765;
                   Family = "both";
                 }
               ];
