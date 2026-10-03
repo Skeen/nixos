@@ -144,6 +144,8 @@ in {
         management = {
           port = management_port;
           turnDomain = domain;
+          # Peers resolve each other as <hostname>.machines.netbird.awful.engineer
+          dnsDomain = "machines.${domain}";
           # Overridden by the embedded identity provider
           oidcConfigEndpoint = "https://${domain}/oauth2/.well-known/openid-configuration";
           settings = {
