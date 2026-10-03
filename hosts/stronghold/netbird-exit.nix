@@ -41,15 +41,17 @@ in {
   age.secrets = {
     stronghold-mullvad-dk-wg-private-key-file = {
       file = "${secrets}/secrets/stronghold-mullvad-dk-wg-private-key.age";
-      mode = "400";
+      # systemd-networkd reads PrivateKeyFile as the systemd-network user
+      mode = "440";
       owner = "root";
-      group = "root";
+      group = "systemd-network";
     };
     stronghold-mullvad-sg-wg-private-key-file = {
       file = "${secrets}/secrets/stronghold-mullvad-sg-wg-private-key.age";
-      mode = "400";
+      # systemd-networkd reads PrivateKeyFile as the systemd-network user
+      mode = "440";
       owner = "root";
-      group = "root";
+      group = "systemd-network";
     };
     stronghold-netbird-exit-dk-setup-key-file = {
       file = "${secrets}/secrets/stronghold-netbird-exit-dk-setup-key.age";
