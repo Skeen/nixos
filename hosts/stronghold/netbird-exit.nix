@@ -185,6 +185,11 @@ in {
 
             # Return traffic arrives on a different interface than it left
             networking.firewall.checkReversePath = "loose";
+
+            # As a oneshot this waits for management, but management is only
+            # reachable once the host adds its return route in ExecStartPost,
+            # which waits for us. Fork instead so boot can finish.
+            systemd.services.netbird-login.serviceConfig.Type = lib.mkForce "simple";
           };
         })
     )

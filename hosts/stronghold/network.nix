@@ -59,4 +59,9 @@
     matchConfig.Name = "ve-netbird";
     linkConfig.Unmanaged = true;
   };
+
+  systemd.network.networks."20-ve-exit" = {
+    matchConfig.Name = "ve-exit-*";
+    linkConfig.Unmanaged = true;
+  };
 }
