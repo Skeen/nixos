@@ -29,6 +29,7 @@
     ./network.nix
     ./wghub.nix
     ./netbird.nix
+    ./netbird-exit.nix
   ];
 
   nix = {
