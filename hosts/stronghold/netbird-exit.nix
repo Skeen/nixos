@@ -10,8 +10,8 @@
   domain = "netbird.awful.engineer";
   system = pkgs.stdenv.hostPlatform.system;
 
-  # Mullvad's default route lives in this table; wireguard tags its own packets
-  # with the same number so the policy rule below can let them out
+  # Mullvad's default route lives here rather than main, so it only applies to
+  # what the policy rule sends it
   mullvadTable = 100;
 
   # One Mullvad device each: two peers sharing a key fight over the one session
@@ -135,7 +135,6 @@ in {
               };
               wireguardConfig = {
                 PrivateKeyFile = mullvad_key;
-                FirewallMark = mullvadTable;
                 RouteTable = mullvadTable;
               };
               wireguardPeers = [
@@ -152,20 +151,41 @@ in {
             systemd.network.networks."20-mullvad" = {
               matchConfig.Name = "mullvad";
               address = exit.mullvadAddress;
-              routingPolicyRules = [
-                # Main minus its default route, so DNS to the host survives
+
+              # If the tunnel drops, its route goes with it and the table would
+              # fall through to netbird's, leaking out via Hetzner. Blackhole
+              # at a worse metric keeps the floor under it.
+              routes = [
                 {
-                  Table = "main";
-                  SuppressPrefixLength = 0;
-                  Priority = 32764;
-                  Family = "both";
-                }
-                # Everything else to Mullvad, except WireGuard's own traffic
-                {
+                  Destination = "0.0.0.0/0";
+                  Type = "blackhole";
                   Table = mullvadTable;
-                  FirewallMark = mullvadTable;
-                  InvertRule = true;
-                  Priority = 32765;
+                  Metric = 32767;
+                }
+                {
+                  Destination = "::/0";
+                  Type = "blackhole";
+                  Table = mullvadTable;
+                  Metric = 32767;
+                }
+              ];
+
+              routingPolicyRules = [
+                # A client browsing to the endpoint itself must not be sent
+                # into the tunnel that reaches it
+                {
+                  To = lib.head (lib.splitString ":" exit.peerEndpoint);
+                  Table = "main";
+                  Priority = 104;
+                }
+                # Forwarded overlay traffic goes to Mullvad; our own, netbird's
+                # included, stays on main. Priority sits between netbird's own
+                # rules at 105 and 110: overlay destinations still resolve from
+                # main at 105, everything else is ours before netbird claims it.
+                {
+                  IncomingInterface = "wt0";
+                  Table = mullvadTable;
+                  Priority = 106;
                   Family = "both";
                 }
               ];
