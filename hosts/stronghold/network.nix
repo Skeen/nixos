@@ -10,6 +10,13 @@
     settings.server.access-control = [ "192.168.100.0/24 allow" ];
   };
 
+  # Let the containers reach unbound through the firewall. Their host-side
+  # interfaces are named ve-<container>, which ve-+ matches.
+  networking.firewall.interfaces."ve-+" = {
+    allowedUDPPorts = [ 53 ];
+    allowedTCPPorts = [ 53 ];
+  };
+
   # Disable systemd-resolved so it doesn't manage /etc/resolv.conf
   services.resolved.enable = false;
 
