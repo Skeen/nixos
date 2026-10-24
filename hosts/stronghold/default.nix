@@ -42,6 +42,10 @@
     enable = true;
     device = "/dev/sda";
   };
+  # 26.05 makes the systemd initrd the default. Stay on the scripted one so
+  # the upgrade does not also change how this remote machine boots. Scripted
+  # stage 1 is removed in 26.11, so migrate before then.
+  boot.initrd.systemd.enable = false;
 
   networking.hostName = "stronghold";
 

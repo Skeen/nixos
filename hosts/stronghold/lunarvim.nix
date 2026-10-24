@@ -1,6 +1,14 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  nixpkgs-2505,
+  ...
+}: let
+  # lunarvim was removed in nixpkgs 26.05 as it is abandoned upstream. Keep
+  # the last packaged version from nixpkgs 25.05.
+  pkgs2505 = nixpkgs-2505.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+in {
   environment.systemPackages = with pkgs; [
-    (lunarvim.override {
+    (pkgs2505.lunarvim.override {
       viAlias = true;
       vimAlias = true;
       nvimAlias = true;

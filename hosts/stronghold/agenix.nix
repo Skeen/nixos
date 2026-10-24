@@ -20,6 +20,6 @@
 
   # `agenix` cli tool
   environment.systemPackages = [
-    agenix.packages.${pkgs.system}.default
+    agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }
