@@ -12,7 +12,7 @@
     home.activation.wipeXfceScreensaver = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
       echo "Purging Xfce4 Screensaver config to ensure only the defined config runs..."
       # Removes all entries for xfce4-screensaver in '/' and below (recursive)
-      ${pkgs.xfce.xfconf}/bin/xfconf-query --channel xfce4-screensaver --property / --reset --recursive || true
+      ${pkgs.xfconf}/bin/xfconf-query --channel xfce4-screensaver --property / --reset --recursive || true
     '';
 
     # As above, but for xfce4-power-manager. This also clears any orphaned keys
@@ -20,7 +20,7 @@
     # prefix that the daemon actually reads.
     home.activation.wipeXfcePowerManager = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
       echo "Purging Xfce4 Power Manager config to ensure only the defined config runs..."
-      ${pkgs.xfce.xfconf}/bin/xfconf-query --channel xfce4-power-manager --property / --reset --recursive || true
+      ${pkgs.xfconf}/bin/xfconf-query --channel xfce4-power-manager --property / --reset --recursive || true
     '';
 
     # 2. Configure the screensaver
