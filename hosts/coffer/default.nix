@@ -41,8 +41,12 @@
   nix.package = pkgs.nixVersions.stable;
   nix.nixPath = ["nixpkgs=${nixpkgs-unstable}"];
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.supportedFilesystems = pkgs.lib.mkForce ["btrfs" "cifs" "f2fs" "jfs" "ntfs" "reiserfs" "vfat" "xfs" "ext2"];
+  boot.supportedFilesystems = pkgs.lib.mkForce ["btrfs" "cifs" "f2fs" "jfs" "ntfs" "vfat" "xfs" "ext2"];
   boot.kernelParams = ["debug" "console=ttyS2,1500000"];
+  # 26.05 makes the systemd initrd the default. Stay on the scripted one so
+  # the upgrade does not also change how the bind-mounted store comes up in
+  # stage 1. Scripted stage 1 is removed in 26.11, so migrate before then.
+  boot.initrd.systemd.enable = false;
 
   system.stateVersion = "25.05";
   networking.hostName = "coffer";
