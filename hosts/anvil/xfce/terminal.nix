@@ -23,7 +23,7 @@
     home.activation.wipeXfceTerminal = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
       echo "Purging Xfce4 Terminal config to ensure only the defined config runs..."
       # Removes all entries for xfce4-terminal in '/' and below (recursive)
-      ${pkgs.xfce.xfconf}/bin/xfconf-query --channel xfce4-terminal --property / --reset --recursive || true
+      ${pkgs.xfconf}/bin/xfconf-query --channel xfce4-terminal --property / --reset --recursive || true
     '';
 
     # 3. Configure the terminal

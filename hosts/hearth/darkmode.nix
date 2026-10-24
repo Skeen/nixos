@@ -1,5 +1,5 @@
 { ... }: {
-  home-manager.users.emil = { pkgs, lib, ... }: {
+  home-manager.users.emil = { config, pkgs, lib, ... }: {
 
     home.packages = with pkgs; [
       gnome-themes-extra
@@ -27,6 +27,8 @@
           gtk-application-prefer-dark-theme=1
         '';
       };
+      # Home Manager 26.05 no longer applies gtk.theme to GTK4 by default
+      gtk4.theme = config.gtk.theme;
       # This puts 'gtk-application-prefer-dark-theme=1' in ~/.config/gtk-4.0/settings.ini
       gtk4.extraConfig = {
         Settings = ''

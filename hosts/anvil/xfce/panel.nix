@@ -25,7 +25,7 @@ in
   home-manager.users.emil = { pkgs, lib, ... }: {
 
     # 1. Ensure xfce4-panel and needed plugins are available
-    home.packages = with pkgs.xfce; [
+    home.packages = with pkgs; [
       xfce4-panel
       xfce4-pulseaudio-plugin
     ];
@@ -42,7 +42,7 @@ in
     home.activation.wipeXfcePanel = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
       echo "Purging Xfce4 Panel config to ensure only the defined config runs..."
       # Removes all entries for xfce4-panel in '/' and below (recursive)
-      ${pkgs.xfce.xfconf}/bin/xfconf-query --channel xfce4-panel --property / --reset --recursive || true
+      ${pkgs.xfconf}/bin/xfconf-query --channel xfce4-panel --property / --reset --recursive || true
     '';
 
     # 3. Configure the panel

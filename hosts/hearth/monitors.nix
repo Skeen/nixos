@@ -62,7 +62,7 @@
           # Previous to this approach an attempt at using reduced blanking to make the
           # signal fit was attempted, but resulted in instability of the signal causing
           # short-term signal drops / black screens.
-          "fix-g9-colors" = "${pkgs.xorg.xrandr}/bin/xrandr --output DP-3 --set 'max bpc' 8 --set 'Colorspace' 'opRGB'";
+          "fix-g9-colors" = "${pkgs.xrandr}/bin/xrandr --output DP-3 --set 'max bpc' 8 --set 'Colorspace' 'opRGB'";
         };
       };
     };

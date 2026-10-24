@@ -4,9 +4,14 @@
 {
   config,
   pkgs,
+  nixpkgs-2505,
   secrets,
   ...
-}: {
+}: let
+  # lunarvim was removed in nixpkgs 26.05 as it is abandoned upstream. Keep
+  # the last packaged version from nixpkgs 25.05.
+  pkgs2505 = nixpkgs-2505.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+in {
   imports = [
     # Include the results of the hardware scan.
     ./hardware.nix
@@ -118,7 +123,7 @@
   services.printing.enable = true;
 
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -153,8 +158,8 @@
   };
 
   # Enable automatic login for the user.
-  services.xserver.displayManager.autoLogin.enable = true;
-  services.xserver.displayManager.autoLogin.user = "emil";
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "emil";
 
   # Install firefox.
   programs.firefox.enable = true;
@@ -168,7 +173,7 @@
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
     git
-    (lunarvim.override {
+    (pkgs2505.lunarvim.override {
       viAlias = true;
       vimAlias = true;
       nvimAlias = true;

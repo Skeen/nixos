@@ -12,7 +12,7 @@
     home.activation.wipeXfceScreensaver = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
       echo "Purging Xfce4 Screensaver config to ensure only the defined config runs..."
       # Removes all entries for xfce4-screensaver in '/' and below (recursive)
-      ${pkgs.xfce.xfconf}/bin/xfconf-query --channel xfce4-screensaver --property / --reset --recursive || true
+      ${pkgs.xfconf}/bin/xfconf-query --channel xfce4-screensaver --property / --reset --recursive || true
     '';
 
     # 2. Configure the screensaver

@@ -28,7 +28,7 @@ in
   home-manager.users.emil = { pkgs, lib, ... }: {
 
     # 1. Ensure xfce4-desktop is available
-    home.packages = with pkgs.xfce; [
+    home.packages = with pkgs; [
       xfdesktop
     ];
 
@@ -44,7 +44,7 @@ in
     home.activation.wipeXfceDesktop = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
       echo "Purging Xfce4 Desktop config to ensure only the defined config runs..."
       # Removes all entries for xfce4-desktop in '/' and below (recursive)
-      ${pkgs.xfce.xfconf}/bin/xfconf-query --channel xfce4-desktop --property / --reset --recursive || true
+      ${pkgs.xfconf}/bin/xfconf-query --channel xfce4-desktop --property / --reset --recursive || true
     '';
 
     # 3. Configure the panel

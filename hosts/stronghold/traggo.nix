@@ -9,11 +9,11 @@
   ...
 }: let
   traggo_data_dir = "/nix/traggo";
-  traggo_package = traggo.packages.${pkgs.system}.default;
+  traggo_package = traggo.packages.${pkgs.stdenv.hostPlatform.system}.default;
   traggo_id = 43030;
 
   thyme_data_dir = "/nix/thyme";
-  thyme_package = thyme.packages.${pkgs.system}.default;
+  thyme_package = thyme.packages.${pkgs.stdenv.hostPlatform.system}.default;
   thyme_id = 43031;
 in {
   # Create the traggo user and group

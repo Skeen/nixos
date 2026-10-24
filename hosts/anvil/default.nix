@@ -4,9 +4,14 @@
 {
   config,
   pkgs,
+  nixpkgs-2505,
   secrets,
   ...
-}: {
+}: let
+  # lunarvim was removed in nixpkgs 26.05 as it is abandoned upstream. Keep
+  # the last packaged version from nixpkgs 25.05.
+  pkgs2505 = nixpkgs-2505.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+in {
   imports = [
     # Include the results of the hardware scan.
     ./hardware.nix
@@ -152,7 +157,7 @@
   services.printing.enable = true;
 
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -187,8 +192,8 @@
   };
 
   # Enable automatic login for the user.
-  services.xserver.displayManager.autoLogin.enable = true;
-  services.xserver.displayManager.autoLogin.user = "emil";
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "emil";
 
   # Install firefox.
   programs.firefox.enable = true;
@@ -206,12 +211,12 @@
     # wide, as it is only needed for clipboard control from lunarvim
     # (i.e. space+y). The aliases below are symlinks to the wrapped lvim, so
     # they pick it up too.
-    ((lunarvim.override {
+    ((pkgs2505.lunarvim.override {
       viAlias = true;
       vimAlias = true;
       nvimAlias = true;
     }).overrideAttrs (old: {
-      runtimeDeps = old.runtimeDeps ++ [ xclip ];
+      runtimeDeps = old.runtimeDeps ++ [ pkgs2505.xclip ];
     }))
     htop
     tree

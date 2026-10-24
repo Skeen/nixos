@@ -6,7 +6,7 @@
       url = "git+ssh://git@github.com/Skeen/nixos-secret.git";
     };
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/nixos-25.05";
+      url = "github:NixOS/nixpkgs/nixos-26.05";
     };
     nixpkgs-unstable = {
       url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -14,6 +14,10 @@
     # Asterisk 22 LTS for modules/asterisk-quectel (25.05 has Asterisk 20)
     nixpkgs-2605 = {
       url = "github:NixOS/nixpkgs/nixos-26.05";
+    };
+    # lunarvim, which 26.05 removed as it is abandoned upstream
+    nixpkgs-2505 = {
+      url = "github:NixOS/nixpkgs/nixos-25.05";
     };
     # Asterisk channel driver for the Quectel modem on coffer
     chan-quectel = {
@@ -45,7 +49,7 @@
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
     };
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
     };
     home-manager-unstable = {
