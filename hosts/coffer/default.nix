@@ -22,7 +22,8 @@
     ./m1s-ups.nix
     ./network.nix
     ./wghub.nix
-    ../../modules/asterisk-quectel
+    # Asterisk is disabled for now, re-enable after the 26.05 upgrade
+    # ../../modules/asterisk-quectel
   ];
 
   environment.systemPackages = with pkgs; [
