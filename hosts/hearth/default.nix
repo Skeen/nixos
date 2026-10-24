@@ -43,6 +43,8 @@
 
   # Bootloader
   boot = {
+    # Disable low-level c-states as instability from escaping has been observed
+    kernelParams = ["processor.max_cstate=1"];
     # Emulate aarch64 via qemu so we can build for the Odroid M1S hosts
     # (coffer, granary) locally with nixos-rebuild --target-host.
     binfmt.emulatedSystems = ["aarch64-linux"];
