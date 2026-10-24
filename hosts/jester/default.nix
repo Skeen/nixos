@@ -13,6 +13,7 @@
     ./disko.nix
     ./impermanence.nix
     ./jovian.nix
+    ./xfce/default.nix
     ./housekeeping.nix
     ../../modules/base/fish.nix
     ./home-manager.nix
@@ -108,16 +109,9 @@
   # Gaming Mode), so unlike the other hosts there is no lightdm or autoLogin.
   services.xserver.desktopManager.xfce = {
     enable = true;
-    # The lock screen wants a typed password, and the Deck has no keyboard.
+    # The lock screen wants a typed password, and the Deck has no physical
+    # keyboard.
     enableScreensaver = false;
-  };
-
-  # Jovian sets logind HandlePowerKey=ignore in favour of its powerbuttond,
-  # which only runs in Gaming Mode. In the desktop session the button is left
-  # to xfce4-power-manager, which does nothing with it by default.
-  home-manager.users.emil.xfconf.settings.xfce4-power-manager = {
-    # Power Manager: General: When power button is pressed: Ask
-    "xfce4-power-manager/power-button-action" = 3;
   };
 
   # Configure keymap in X11
