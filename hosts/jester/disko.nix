@@ -28,7 +28,7 @@ in {
   # back in from /nix/persist by the impermanence module (see ./impermanence.nix),
   # exactly as on the other hosts, so only /nix (and /boot) truly persist.
   #
-  # Like golem there is no LUKS layer: the Deck boots unattended into Gaming
+  # There is no LUKS layer: the Deck boots unattended into Gaming
   # Mode and has no keyboard to type a passphrase into the initrd. Secrets on
   # disk stay protected by agenix, which encrypts them to the host key rather
   # than to the block device.
