@@ -6,13 +6,13 @@
       # wpctl
       wireplumber
       # xkill
-      xorg.xkill
+      xkill
       # xfce4 tools
-      xfce.xfce4-session  # xfce4-session-logout, xflock4
-      xfce.xfce4-taskmanager
-      xfce.xfce4-screenshooter
-      xfce.xfce4-appfinder
-      xfce.exo  # exo-open
+      xfce4-session  # xfce4-session-logout, xflock4
+      xfce4-taskmanager
+      xfce4-screenshooter
+      xfce4-appfinder
+      xfce4-exo  # exo-open
     ];
 
     # 2. Purge the XFCE database
@@ -27,7 +27,7 @@
     home.activation.wipeXfceShorcuts = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
       echo "Purging Xfce4 Keyboard Shortcuts config to ensure only the defined config runs..."
       # Removes all entries for xfce4-keyboard-shortcuts in '/' and below (recursive)
-      ${pkgs.xfce.xfconf}/bin/xfconf-query --channel xfce4-keyboard-shortcuts --property / --reset --recursive || true
+      ${pkgs.xfconf}/bin/xfconf-query --channel xfce4-keyboard-shortcuts --property / --reset --recursive || true
     '';
 
     # 3. Configure the panel
