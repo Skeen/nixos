@@ -4,7 +4,7 @@
   home-manager-unstable,
   ...
 }: let
-  # Voxtype is not in nixpkgs 25.05 yet.
+  # nixpkgs 26.05 only has voxtype 0.7.2, older than unstable's.
   # TODO: Remove in NixOS 26.11
   voxtype = nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.voxtype-onnx;
 in {
