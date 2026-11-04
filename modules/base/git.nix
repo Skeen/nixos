@@ -22,6 +22,10 @@
         # the remote changes.
         pull.rebase = true;
 
+        # Automatically stash and pop uncommitted changes when rebasing, so `git rebase`
+        # can run even with a dirty working tree.
+        rebase.autoStash = true;
+
         alias = {
           # Whenever a branch has been rebased or amended `git push` fails as it would
           # override existing commits on the remote, thus `git push --force` must be used
