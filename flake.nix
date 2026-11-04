@@ -69,9 +69,7 @@
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
     };
     clank = {
-      url = "git+https://git.caspervk.net/caspervk/clank.git?ref=dev"; # TODO
-      inputs.nixpkgs.follows = "nixpkgs-unstable"; # use unstable to get latest harnesses
-      inputs.home-manager.follows = "home-manager-unstable";
+      url = "git+https://git.caspervk.net/caspervk/clank.git";
     };
   };
 

@@ -23,12 +23,12 @@
               # Disable mouse capture so the host terminal's native selection
               # is preserved. The TUI's own copy path (xclip/OSC 52) cannot
               # reach the host clipboard from inside the container anyway.
-              tui.mouse = false;
+              cli.mouse = false;
               settings = {
                 "$schema" = "https://opencode.ai/config.json";
                 # GreenPT routes through the credentials-injecting proxy like
                 # the Magenta tools, so the sandbox only sees the dummy key.
-                provider.greenpt.options = {
+                providers.greenpt.settings = {
                   apiKey = "dummy";
                   baseURL = "http://clank-proxy:1655/v1";
                 };
