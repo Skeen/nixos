@@ -15,6 +15,5 @@
     ./terminal.nix
     ./shortcuts.nix
     ./power-manager.nix
-    ./keyboard.nix
   ];
 }
