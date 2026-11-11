@@ -65,7 +65,8 @@
         # Jovian sets logind HandlePowerKey=ignore in favour of its powerbuttond,
         # which only runs in Gaming Mode. In the desktop session the button is
         # left to xfce4-power-manager, which does nothing with it by default.
-        "xfce4-power-manager/power-button-action" = 3;
+        # Suspend straight away, like a short press does in Gaming Mode.
+        "xfce4-power-manager/power-button-action" = 1;
 
         # There is no lock screen to lock with on suspend or hibernation
         # System: Security: Lock screen when system is going to sleep
