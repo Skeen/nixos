@@ -15,5 +15,6 @@
     ./terminal.nix
     ./shortcuts.nix
     ./power-manager.nix
+    ./compositor.nix
   ];
 }
