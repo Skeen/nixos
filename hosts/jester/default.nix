@@ -15,6 +15,7 @@
     ./jovian.nix
     ./xfce/default.nix
     ./housekeeping.nix
+    ./jellyfin.nix
     ../../modules/base/fish.nix
     ./home-manager.nix
     ./agenix.nix
