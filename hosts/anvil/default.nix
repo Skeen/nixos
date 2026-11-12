@@ -20,6 +20,10 @@ in {
     ./disko.nix
     ./impermanence.nix
     ./podman.nix
+    ./k3s.nix
+    ./redmine.nix
+    ./agent-sandbox.nix
+    ./kata.nix
     ../../modules/base/fish.nix
     ./home-manager.nix
     ./agenix.nix
