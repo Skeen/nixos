@@ -69,7 +69,7 @@
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
     };
     clank = {
-      url = "git+https://git.caspervk.net/caspervk/clank.git";
+      url = "github:Skeen/clank/redmine";
     };
   };
 
@@ -82,6 +82,14 @@
     # https://kamadorueda.com/alejandra/
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
     formatter.aarch64-linux = nixpkgs.legacyPackages.aarch64-linux.alejandra;
+
+    # VM tests, run with e.g. `nix build -L .#checks.x86_64-linux.anvil-k3s`
+    checks.x86_64-linux = {
+      anvil-k3s = nixpkgs.legacyPackages.x86_64-linux.testers.runNixOSTest {
+        imports = [./hosts/anvil/vm-test.nix];
+        node.specialArgs = inputs; # pass flake inputs to modules
+      };
+    };
 
     nixosConfigurations = {
       # Work laptop

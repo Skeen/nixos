@@ -30,3 +30,10 @@
 		header_up Authorization "Basic {$CLANK_GITLAB_BASIC}"
 	}
 }
+
+# Redmine
+:1974 {
+  reverse_proxy http://10.43.167.146 {
+    header_up X-Redmine-API-Key "{$CLANK_REDMINE_TOKEN}"
+  }
+}
