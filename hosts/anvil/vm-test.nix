@@ -1,10 +1,13 @@
 # NixOS VM test of the cluster on anvil, and what runs on it: boots ./k3s.nix,
-# ./redmine.nix, ./agent-sandbox.nix and ./kata.nix in a machine set up like
-# anvil where it matters to the cluster (a root filesystem that does not
-# survive a reboot, state on btrfs under /nix/persist, the firewall, and an
-# uplink managed by NetworkManager), next to a second machine playing the
-# network the laptop is on, as well as the internet. Sandboxes run in VMs in
-# that VM, which needs nested virtualization. Run it with:
+# ./redmine.nix, ./agent-sandbox.nix, ./kata.nix, ./redmine-operator.nix,
+# ./agents.nix and ./credentials-proxy.nix in a machine set up like anvil
+# where it matters to the cluster (a root filesystem that does not survive a
+# reboot, state on btrfs under /nix/persist, the firewall, and an uplink
+# managed by NetworkManager), next to a second machine playing the network the
+# laptop is on, as well as the internet, with a scripted model provider
+# (./vm-test/model.py) and a stand-in for GitLab (./vm-test/gitlab.py) on it.
+# Sandboxes run in VMs in that VM, which needs nested virtualization. Run it
+# with:
 #
 #   nix build -L .#checks.x86_64-linux.anvil-k3s
 {pkgs, ...}: let
@@ -31,6 +34,17 @@
       finalImageTag = "v1.0.10";
     })
   ];
+
+  # An image for agents to run containers of, as they cannot pull one
+  busyboxImage = pkgs.dockerTools.buildImage {
+    name = "busybox";
+    tag = "latest";
+    copyToRoot = pkgs.buildEnv {
+      name = "busybox-root";
+      paths = [pkgs.busybox];
+      pathsToLink = ["/bin"];
+    };
+  };
 
   # The image for the pods below is built here.
   image = pkgs.dockerTools.buildImage {
@@ -158,6 +172,25 @@
       ];
     });
 
+  # Sets Redmine up as done by hand in its web interface on anvil: the REST
+  # API, the default configuration, a project, and a user for the Redmine
+  # operator (./redmine-operator.nix) to act as. Prints API keys to use.
+  redmineSetup = pkgs.writeText "redmine-setup.rb" ''
+    Setting.rest_api_enabled = "1"
+    Redmine::DefaultData::Loader.load("en") if Redmine::DefaultData::Loader.no_data?
+    ai = User.new
+    ai.login = "ai"
+    ai.firstname = "AI"
+    ai.lastname = "Bot"
+    ai.mail = "ai@example.invalid"
+    ai.password = SecureRandom.hex(16)
+    ai.save!
+    project = Project.create!(name: "AI", identifier: "ai", tracker_ids: Tracker.ids)
+    Member.create!(principal: ai, project: project, role_ids: [Role.find_by_name("Developer").id])
+    puts "ai #{ai.id} #{ai.api_key}"
+    puts "admin #{User.find_by_login("admin").api_key}"
+  '';
+
   # The two networks anvil roams between, both provided by the `lan` machine.
   networks = {
     home = "192.168.1";
@@ -166,6 +199,10 @@
   # An address on the internet (one reserved for documentation), which the
   # `lan` machine has as well.
   internet = "203.0.113.1";
+  # The API key of the model provider there, and the credentials of a GitLab
+  modelKey = "model-key";
+  gitlabToken = "gitlab-token";
+  gitlabBasic = "Z2l0bGFiOnRva2Vu";
 in {
   name = "anvil-k3s";
 
@@ -181,6 +218,9 @@ in {
       ./redmine.nix
       ./agent-sandbox.nix
       ./kata.nix
+      ./redmine-operator.nix
+      ./agents.nix
+      ./credentials-proxy.nix
     ];
 
     virtualisation = {
@@ -266,6 +306,15 @@ in {
           wantedBy = ["multi-user.target"];
           serviceConfig.ExecStart = "${pkgs.busybox}/bin/httpd -f -p 80 -h ${pkgs.writeTextDir "index.html" "hello from lan\n"}";
         };
+        # The model provider of the agents, and a GitLab, on the internet
+        model = {
+          wantedBy = ["multi-user.target"];
+          serviceConfig.ExecStart = "${pkgs.python3}/bin/python3 ${./vm-test/model.py} 0.0.0.0 8000 ${modelKey}";
+        };
+        gitlab = {
+          wantedBy = ["multi-user.target"];
+          serviceConfig.ExecStart = "${pkgs.python3}/bin/python3 ${./vm-test/gitlab.py} 0.0.0.0 8001 ${gitlabToken} ${gitlabBasic}";
+        };
       }
       # A nameserver per network, each resolving `where.test` to its own
       # address, which tells the nameserver in use.
@@ -283,6 +332,7 @@ in {
   };
 
   testScript = ''
+    import json
     import re
     import time
 
@@ -309,6 +359,16 @@ in {
         return redmine("/my/account", "-o /dev/null -w '%{http_code}'") == "200"
 
 
+    def redmine_api(key, method, path, payload=None):
+        # A request to the REST API of Redmine, as the owner of the API key
+        data = ""
+        if payload is not None:
+            anvil.succeed(f"cat > /tmp/payload.json << 'EOF'\n{json.dumps(payload)}\nEOF")
+            data = "-H 'Content-Type: application/json' --data @/tmp/payload.json"
+        output = anvil.succeed(f"curl -sf -m 10 -X {method} -H 'X-Redmine-API-Key: {key}' {data} http://redmine.localhost{path}")
+        return json.loads(output or "null")
+
+
     def log_in_to_redmine(password):
         token = authenticity_token(redmine("/login"))
         redmine("/login", f"--data-urlencode 'authenticity_token={token}'", f"-d username=admin -d password={password}")
@@ -328,6 +388,18 @@ in {
             f"kubectl exec workload -- nslookup -type=a where.test | grep 'Address: {nameserver}'",
             timeout=60,
         )
+
+
+    def eventually(check, timeout):
+        deadline = time.monotonic() + timeout
+        while not check():
+            assert time.monotonic() < deadline, f"timed out waiting for {check.__name__}"
+            time.sleep(5)
+
+
+    def ticket_notes(key, ticket):
+        issue = redmine_api(key, "GET", f"/issues/{ticket}.json?include=journals")["issue"]
+        return issue["status"]["name"], [journal["notes"] for journal in issue["journals"] if journal["notes"]]
 
 
     start_all()
@@ -410,6 +482,89 @@ in {
         anvil.fail("kubectl exec workload -- curl -s -m 5 -o /dev/null http://10.41.0.1:8888/")
         anvil.fail("kubectl exec workload -- curl -s -m 5 -o /dev/null http://${networks.home}.2:8888/")
 
+    with subtest("the Redmine operator has an agent in a sandbox work on tickets assigned to it"):
+        anvil.succeed("kubectl -n redmine exec -i deploy/redmine -c redmine -- sh -c 'cat > /tmp/setup.rb' < ${redmineSetup}")
+        setup = anvil.succeed("kubectl -n redmine exec deploy/redmine -c redmine -- sh -c 'SECRET_KEY_BASE=$(cat /var/lib/redmine/secret_key_base) exec gosu redmine bin/rails runner /tmp/setup.rb'")
+        found = re.search(r"^ai (\d+) (\w+)\nadmin (\w+)$", setup, re.MULTILINE)
+        assert found is not None, f"unexpected output of the setup: {setup}"
+        ai_id, ai_key, admin_key = found.groups()
+        # On anvil, the keys come from agenix
+        anvil.succeed(f"kubectl -n redmine-operator create secret generic redmine-api-key --from-literal=key={ai_key}")
+        anvil.succeed("kubectl -n credentials-proxy create secret generic model-provider --from-literal=url=http://${internet}:8000 --from-literal=key=${modelKey}")
+        anvil.succeed(f"kubectl -n credentials-proxy create secret generic redmine --from-literal=key={ai_key}")
+        anvil.succeed("kubectl -n credentials-proxy create secret generic gitlab --from-literal=url=http://${internet}:8001 --from-literal=token=${gitlabToken} --from-literal=basic=${gitlabBasic}")
+        anvil.wait_until_succeeds("kubectl -n redmine-operator rollout status deployment/redmine-operator --timeout=5s", timeout=300)
+
+        description = "Which kernel does your sandbox run?\n\nRUN: uname -r"
+        ticket = redmine_api(admin_key, "POST", "/issues.json", {"issue": {"project_id": "ai", "subject": "Find the kernel", "description": description, "assigned_to_id": int(ai_id)}})["issue"]["id"]
+        anvil.wait_until_succeeds(f"kubectl -n agents wait --for=condition=Ready sandboxclaim/redmine-{ticket} --timeout=5s", timeout=600)
+        status, notes = ticket_notes(admin_key, ticket)
+        assert any(f"redmine-{ticket}" in note for note in notes), notes
+        sandbox = anvil.succeed(f"kubectl -n agents get sandboxclaim redmine-{ticket} -o jsonpath='{{.status.sandbox.name}}'").strip()
+        kernel = anvil.succeed(f"kubectl -n agents exec {sandbox} -- uname -r").strip()
+        assert kernel != anvil.succeed("uname -r").strip(), "the sandbox is not a VM"
+
+        # The agent replies, with what it ran in the sandbox, which awaits
+        # feedback then. The model gets the key the proxy adds; it would answer
+        # without, with an error.
+        def agent_replied():
+            status, notes = ticket_notes(admin_key, ticket)
+            return f"RESULT: {kernel}" in notes and status == "Feedback"
+        eventually(agent_replied, timeout=300)
+
+        # Notes on the ticket reach it, and so do its replies to them
+        redmine_api(admin_key, "PUT", f"/issues/{ticket}.json", {"issue": {"notes": "Thanks! Anything else?"}})
+        def agent_replied_again():
+            status, notes = ticket_notes(admin_key, ticket)
+            return "ECHO: Thanks! Anything else?" in notes and status == "Feedback"
+        eventually(agent_replied_again, timeout=300)
+
+        # So do changes of the description
+        redmine_api(admin_key, "PUT", f"/issues/{ticket}.json", {"issue": {"description": "What else?\n\nRUN: echo described"}})
+        def agent_saw_the_description():
+            status, notes = ticket_notes(admin_key, ticket)
+            return "RESULT: described" in notes and status == "Feedback"
+        eventually(agent_saw_the_description, timeout=300)
+
+    with subtest("the pod of a sandbox logs what its agent does"):
+        transcript = anvil.succeed(f"kubectl -n agents logs -l sandbox.users.io/redmine-ticket={ticket} -c transcript --tail=-1")
+        for line in ["$ uname -r", f"RESULT: {kernel}", "Thanks! Anything else?", "ECHO: Thanks! Anything else?"]:
+            assert line in transcript, f"{line!r} is not in the transcript:\n{transcript}"
+
+    with subtest("agents reach the internet and their model, not the laptop, its network or the cluster"):
+        proxy = "http://model.credentials-proxy.svc.cluster.local/v1/models"
+        anvil.succeed(f"kubectl -n agents exec {sandbox} -- curl -sf -m 5 -o /dev/null {proxy}")
+        anvil.succeed(f"kubectl -n agents exec {sandbox} -- curl -sf -m 5 -o /dev/null http://${internet}/")
+        for url in ["http://${networks.home}.1/", "https://10.41.0.1:6443/version", "https://10.43.0.1/version", "http://redmine.redmine.svc.cluster.local/login"]:
+            anvil.fail(f"kubectl -n agents exec {sandbox} -- curl -sk -m 5 -o /dev/null {url}")
+        # Nor do other pods reach the credentials proxy
+        anvil.fail(f"kubectl exec workload -- curl -sf -m 5 -o /dev/null {proxy}")
+
+    with subtest("agents reach Redmine, as AI Bot, and GitLab through the credentials proxy"):
+        # Redmine, where it reads and changes its ticket
+        issue = json.loads(anvil.succeed(f"kubectl -n agents exec {sandbox} -- sh -c 'curl -sf $REDMINE_URL/issues/{ticket}.json'"))["issue"]
+        assert issue["subject"] == "Find the kernel", issue
+        anvil.succeed("echo '{\"issue\": {\"description\": \"The kernel is known\"}}' > /tmp/description.json")
+        anvil.succeed(f"kubectl -n agents exec -i {sandbox} -- sh -c 'curl -sf -X PUT -H Content-Type:application/json --data @- $REDMINE_URL/issues/{ticket}.json' < /tmp/description.json")
+        issue = redmine_api(admin_key, "GET", f"/issues/{ticket}.json")["issue"]
+        assert issue["description"] == "The kernel is known", issue
+        # GitLab, with the token for its API and basic authentication for git
+        seen = json.loads(anvil.succeed(f"kubectl -n agents exec {sandbox} -- sh -c 'curl -sf $GITLAB_HOST/api/v4/user'"))
+        assert seen["token"] and seen["basic"], seen
+        anvil.execute(f"kubectl -n agents exec {sandbox} -- git ls-remote https://git.magenta.dk/group/project.git")
+        lan.succeed("journalctl -u gitlab | grep -F /group/project.git/info/refs | grep -F '\"basic\": true'")
+        # Other pods reach neither
+        for service in ["redmine", "gitlab"]:
+            anvil.fail(f"kubectl exec workload -- curl -sf -m 5 -o /dev/null http://{service}.credentials-proxy.svc.cluster.local/")
+
+    with subtest("agents install with Nix, and run containers"):
+        # Nix works, with a store it can add to (fetching nixpkgs takes the internet)
+        anvil.succeed(f"kubectl -n agents exec {sandbox} -- sh -c 'echo built > /tmp/out && nix store add-file /tmp/out && nix eval --expr \"1 + 1\"'")
+        # Containers run, with docker as well as podman, and reach the internet
+        anvil.succeed(f"kubectl -n agents exec -i {sandbox} -- sh -c 'cat > /tmp/busybox.tar.gz' < ${busyboxImage}")
+        anvil.succeed(f"kubectl -n agents exec {sandbox} -- podman load -i /tmp/busybox.tar.gz")
+        assert "hello from lan" in anvil.succeed(f"kubectl -n agents exec {sandbox} -- docker run --rm busybox wget -q -O - http://${internet}/")
+
     with subtest("the cluster keeps working as the laptop roams to another network"):
         anvil.succeed("nmcli connection up work")
         anvil.wait_until_succeeds("ip -4 address show eth1 | grep ${networks.work}.2")
@@ -447,5 +602,21 @@ in {
         anvil.succeed("rm /tmp/cookies")
         log_in_to_redmine("Correct-Horse-1")
         assert logged_in_to_redmine(), "could not log in with the changed password"
+
+    with subtest("an agent keeps its session through a reboot, and its sandbox lasts until the ticket is closed"):
+        # It picks up where it was, rather than starting the ticket over
+        redmine_api(admin_key, "PUT", f"/issues/{ticket}.json", {"issue": {"notes": "Still there?"}})
+        def agent_replied_after_reboot():
+            status, notes = ticket_notes(admin_key, ticket)
+            return "ECHO: Still there?" in notes
+        eventually(agent_replied_after_reboot, timeout=600)
+        status, notes = ticket_notes(admin_key, ticket)
+        assert notes.count(f"RESULT: {kernel}") == 1, notes
+        # Its container images are kept too, and containers run again
+        anvil.succeed(f"kubectl -n agents exec {sandbox} -- docker run --rm busybox true")
+
+        closed = next(status["id"] for status in redmine_api(admin_key, "GET", "/issue_statuses.json")["issue_statuses"] if status["is_closed"])
+        redmine_api(admin_key, "PUT", f"/issues/{ticket}.json", {"issue": {"status_id": closed}})
+        anvil.wait_until_fails(f"kubectl -n agents get sandboxclaim redmine-{ticket}", timeout=120)
   '';
 }
