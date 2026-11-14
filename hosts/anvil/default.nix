@@ -25,12 +25,12 @@ in {
     ./agenix.nix
     ../../modules/base/git.nix
     ../../modules/base/clank.nix
+    ../../modules/base/earlyoom.nix
     ../../modules/server/ssh.nix
     ./monitors.nix
     ./xfce/default.nix
     ./steam.nix
     ./swap.nix
-    ./earlyoom.nix
   ];
 
   nix = {

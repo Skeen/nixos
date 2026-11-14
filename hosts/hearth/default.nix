@@ -30,7 +30,6 @@ in {
     ./discord.nix
     ./steam.nix
     ./swap.nix
-    ./earlyoom.nix
     ./podman.nix
     ../../modules/base/fish.nix
     ./nix-ld.nix
@@ -38,6 +37,7 @@ in {
     ./vpn.nix
     ./voxtype.nix
     ../../modules/base/clank.nix
+    ../../modules/base/earlyoom.nix
   ];
 
   nix = {
