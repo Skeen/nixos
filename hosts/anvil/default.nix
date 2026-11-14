@@ -28,6 +28,8 @@ in {
     ../../modules/server/ssh.nix
     ./monitors.nix
     ./xfce/default.nix
+    ./steam.nix
+    ./swap.nix
   ];
 
   nix = {
