@@ -30,6 +30,7 @@ in {
     ./xfce/default.nix
     ./steam.nix
     ./swap.nix
+    ./earlyoom.nix
   ];
 
   nix = {
