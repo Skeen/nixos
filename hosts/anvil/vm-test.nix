@@ -1,6 +1,7 @@
 # NixOS VM test of the cluster on anvil, and what runs on it: boots ./k3s.nix,
 # ./redmine.nix, ./agent-sandbox.nix, ./kata.nix, ./redmine-operator.nix,
-# ./agents.nix and ./credentials-proxy.nix in a machine set up like anvil
+# ./agent-operator.nix, ./agents.nix and ./credentials-proxy.nix in a machine
+# set up like anvil
 # where it matters to the cluster (a root filesystem that does not survive a
 # reboot, state on btrfs under /nix/persist, the firewall, and an uplink
 # managed by NetworkManager), next to a second machine playing the network the
@@ -223,6 +224,7 @@ in {
       ./agent-sandbox.nix
       ./kata.nix
       ./redmine-operator.nix
+      ./agent-operator.nix
       ./agents.nix
       ./credentials-proxy.nix
     ];
@@ -531,13 +533,13 @@ in {
         assert found is not None, f"unexpected output of the setup: {setup}"
         ai_id, ai_key, admin_key = found.groups()
         # On anvil, the keys come from agenix
-        anvil.succeed(f"kubectl -n redmine-operator create secret generic redmine-api-key --from-literal=key={ai_key}")
+        anvil.succeed(f"kubectl -n agents create secret generic redmine-api-key --from-literal=key={ai_key}")
         anvil.succeed("kubectl -n credentials-proxy create secret generic greenpt --from-literal=url=http://${internet}:8000 --from-literal=key=${modelKey}")
         anvil.succeed(f"kubectl -n credentials-proxy create secret generic redmine --from-literal=key={ai_key}")
         anvil.succeed("kubectl -n credentials-proxy create secret generic gitlab --from-literal=url=http://${internet}:8001 --from-literal=token=${gitlabToken} --from-literal=basic=${gitlabBasic}")
         anvil.succeed("kubectl -n credentials-proxy create secret generic kagi --from-literal=url=http://${internet}:8001 --from-literal=token=${kagiToken}")
         anvil.succeed("kubectl -n credentials-proxy create secret generic loki --from-literal=url=http://${internet}:8001 --from-literal=basic=${lokiBasic}")
-        anvil.wait_until_succeeds("kubectl -n redmine-operator rollout status deployment/redmine-operator --timeout=5s", timeout=300)
+        anvil.wait_until_succeeds("kubectl -n redmine-operator-system rollout status deployment/redmine-operator --timeout=5s", timeout=300)
 
         description = "Which kernel does your sandbox run?\n\nRUN: uname -r"
         ticket = redmine_api(admin_key, "POST", "/issues.json", {"issue": {"project_id": "ai", "subject": "Find the kernel", "description": description, "assigned_to_id": int(ai_id)}})["issue"]["id"]
@@ -571,7 +573,7 @@ in {
         eventually(agent_saw_the_description, timeout=300)
 
     with subtest("the pod of a sandbox logs what its agent does"):
-        transcript = anvil.succeed(f"kubectl -n agents logs -l sandbox.users.io/redmine-ticket={ticket} -c transcript --tail=-1")
+        transcript = anvil.succeed(f"kubectl -n agents logs -l sandbox.users.io/issue=redmine-{ticket} -c transcript --tail=-1")
         for line in ["$ uname -r", f"RESULT: {kernel}", "Thanks! Anything else?", "ECHO: Thanks! Anything else?"]:
             assert line in transcript, f"{line!r} is not in the transcript:\n{transcript}"
 
@@ -663,5 +665,59 @@ in {
         closed = next(status["id"] for status in redmine_api(admin_key, "GET", "/issue_statuses.json")["issue_statuses"] if status["is_closed"])
         redmine_api(admin_key, "PUT", f"/issues/{ticket}.json", {"issue": {"status_id": closed}})
         anvil.wait_until_fails(f"kubectl -n agents get sandboxclaim redmine-{ticket}", timeout=120)
+
+    with subtest("the agent operator has an agent work on an Issue applied by hand"):
+        anvil.wait_until_succeeds("kubectl -n agent-operator-system rollout status deployment/agent-operator --timeout=5s", timeout=300)
+        anvil.succeed("""kubectl apply -f - << 'EOF'
+    apiVersion: agents.internal/v1alpha1
+    kind: Issue
+    metadata:
+      name: by-hand
+      namespace: agents
+    spec:
+      title: Find the kernel
+      description: |
+        Which kernel does your sandbox run?
+
+        RUN: uname -r
+    EOF""")
+
+        def issue_status():
+            return json.loads(anvil.succeed("kubectl -n agents get issue by-hand -o json")).get("status", {})
+
+        def replied(text):
+            def check():
+                status = issue_status()
+                return status.get("phase") == "WaitingForInput" and any(text in reply["body"] for reply in status.get("replies", []))
+            check.__name__ = f"a reply with {text!r}"
+            return check
+
+        # It claims a sandbox named after the Issue, in a VM, and the agent
+        # replies into the status with what it ran there
+        anvil.wait_until_succeeds("kubectl -n agents wait --for=condition=Ready sandboxclaim/by-hand --timeout=5s", timeout=600)
+        sandbox = anvil.succeed("kubectl -n agents get sandboxclaim by-hand -o jsonpath='{.status.sandbox.name}'").strip()
+        kernel = in_sandbox(sandbox, "uname -r")[1].strip()
+        assert kernel != anvil.succeed("uname -r").strip(), "the sandbox is not a VM"
+        eventually(replied(f"RESULT: {kernel}"), timeout=300)
+
+        # Comments added to the spec reach the agent, and its replies to them
+        # are added after the first
+        anvil.succeed("""kubectl -n agents patch issue by-hand --type=merge -p '{"spec": {"comments": [{"id": "1", "author": "Emil", "body": "Thanks! Anything else?"}]}}'""")
+        eventually(replied("ECHO: Thanks! Anything else?"), timeout=300)
+        replies = issue_status()["replies"]
+        assert len(replies) == 2 and f"RESULT: {kernel}" in replies[0]["body"], replies
+
+        # The pod logs what the agent does, labelled with the Issue
+        transcript = anvil.succeed("kubectl -n agents logs -l sandbox.users.io/issue=by-hand -c transcript --tail=-1")
+        assert "$ uname -r" in transcript, transcript
+
+        # Closing the Issue deletes its sandbox, as does deleting it
+        anvil.succeed("""kubectl -n agents patch issue by-hand --type=merge -p '{"spec": {"state": "Closed"}}'""")
+        anvil.wait_until_fails("kubectl -n agents get sandboxclaim by-hand", timeout=120)
+        assert issue_status()["phase"] == "Closed"
+        anvil.succeed("""kubectl -n agents patch issue by-hand --type=merge -p '{"spec": {"state": "Open"}}'""")
+        anvil.wait_until_succeeds("kubectl -n agents get sandboxclaim by-hand", timeout=120)
+        anvil.succeed("kubectl -n agents delete issue by-hand")
+        anvil.wait_until_fails("kubectl -n agents get sandboxclaim by-hand", timeout=120)
   '';
 }

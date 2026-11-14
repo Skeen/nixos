@@ -52,8 +52,8 @@
     config.Cmd = ["/bin/transcript"];
   };
 
-  # The password of opencode's server, made up by the Redmine operator
-  # (./redmine-operator.nix), which is its client
+  # The password of opencode's server, made up by the agent operator
+  # (./agent-operator.nix), which is its client
   password = {
     name = "OPENCODE_SERVER_PASSWORD";
     valueFrom.secretKeyRef = {
@@ -97,16 +97,22 @@ in {
     '';
   };
 
-  # The agents the Redmine operator (./redmine-operator.nix) has work on
+  # The agents the agent operator (./agent-operator.nix) has work on Issues,
+  # such as those the Redmine operator (./redmine-operator.nix) writes for
   # tickets: opencode, run as a server in a sandbox (./agent-sandbox.nix) of
   # its own, which is a VM (./kata.nix) with a volume of its own, started as
-  # the ticket is assigned. A sandbox's pod logs what its agent does, as it
-  # does it:
+  # the Issue is opened. A sandbox's pod logs what its agent does, as it does
+  # it:
   #
-  #   sudo k3s kubectl -n agents logs -f -l sandbox.users.io/redmine-ticket=42 -c transcript
+  #   sudo k3s kubectl -n agents logs -f -l sandbox.users.io/issue=redmine-42 -c transcript
   #
-  # They run in the namespace the operator serves, which it defines.
+  # They run in a namespace of their own, along with their Issues.
   services.k3s.manifests.agents.content = [
+    {
+      apiVersion = "v1";
+      kind = "Namespace";
+      metadata.name = "agents";
+    }
     {
       apiVersion = "extensions.agents.x-k8s.io/v1beta1";
       kind = "SandboxTemplate";
@@ -175,14 +181,14 @@ in {
         # agent-sandbox's default policy (the internet, but not the laptop,
         # its network or the cluster), plus what an agent needs of the
         # cluster: the credentials proxy and DNS to find it by, and the
-        # operator talking to it.
+        # agent operator talking to it.
         networkPolicy = {
           ingress = [
             {
               from = [
                 {
-                  namespaceSelector.matchLabels."kubernetes.io/metadata.name" = "redmine-operator";
-                  podSelector.matchLabels."app.kubernetes.io/name" = "redmine-operator";
+                  namespaceSelector.matchLabels."kubernetes.io/metadata.name" = "agent-operator-system";
+                  podSelector.matchLabels."app.kubernetes.io/name" = "agent-operator";
                 }
               ];
               ports = [

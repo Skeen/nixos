@@ -25,6 +25,26 @@
         "type": "github"
       }
     },
+    "agent-operator": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794693957,
+        "narHash": "sha256-w/htWJZ0bvMz/wFz4ufVNMLMjQz3xmb7EoB47lp/JxM=",
+        "ref": "refs/heads/main",
+        "rev": "9afad0c33e8cb8eb71690f2a391d3e5be113dba0",
+        "revCount": 1,
+        "type": "git",
+        "url": "file:///nix/nixos/operators/agent-operator"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///nix/nixos/operators/agent-operator"
+      }
+    },
     "chan-quectel": {
       "flake": false,
       "locked": {
@@ -441,9 +461,30 @@
         "type": "indirect"
       }
     },
+    "redmine-operator": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794693957,
+        "narHash": "sha256-32BMOh/1Za1DXsdp+6hbiJh7x5XJTuySBtSdyy1og5w=",
+        "ref": "refs/heads/main",
+        "rev": "b9284e527fb802954185b84b9b6adf686a32fc26",
+        "revCount": 1,
+        "type": "git",
+        "url": "file:///nix/nixos/operators/redmine-operator"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///nix/nixos/operators/redmine-operator"
+      }
+    },
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "agent-operator": "agent-operator",
         "chan-quectel": "chan-quectel",
         "clank": "clank",
         "disko": "disko",
@@ -458,6 +499,7 @@
         "nixpkgs-2505": "nixpkgs-2505",
         "nixpkgs-2605": "nixpkgs-2605",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "redmine-operator": "redmine-operator",
         "secrets": "secrets",
         "thyme": "thyme",
         "traggo": "traggo"

@@ -24,6 +24,7 @@ in {
     ./redmine.nix
     ./agent-sandbox.nix
     ./kata.nix
+    ./agent-operator.nix
     ./redmine-operator.nix
     ./agents.nix
     ./credentials-proxy.nix

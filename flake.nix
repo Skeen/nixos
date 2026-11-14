@@ -71,6 +71,18 @@
     clank = {
       url = "github:Skeen/clank/redmine";
     };
+    # Has agents work on Issues in sandboxes, on anvil. Its own repository,
+    # for now nested (and ignored) in operators/ of this one.
+    agent-operator = {
+      url = "git+file:///nix/nixos/operators/agent-operator";
+      inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
+    };
+    # Bridges the tickets of Redmine to Issues for agent-operator, on anvil.
+    # Its own repository, nested like agent-operator's.
+    redmine-operator = {
+      url = "git+file:///nix/nixos/operators/redmine-operator";
+      inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs as the system
+    };
   };
 
   outputs = {

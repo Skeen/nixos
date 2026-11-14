@@ -92,8 +92,8 @@
 in {
   # A proxy that adds credentials to the requests of agents, so that they are
   # never in the sandboxes: those of GreenPT, Kagi, Grafana's Loki, GitLab,
-  # and of AI Bot in Redmine, the user of the Redmine operator
-  # (./redmine-operator.nix). Only sandboxes reach it, as clank-proxy.
+  # and of AI Bot in Redmine, the user the Redmine operator
+  # (./redmine-operator.nix) acts as. Only sandboxes reach it, as clank-proxy.
   #
   # For now all agents share these credentials; in the long run, each should
   # have its own.

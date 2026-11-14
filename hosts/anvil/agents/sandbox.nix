@@ -2,7 +2,7 @@
 # ../../../modules/base/clank/modules.nix) the system of an agent's sandbox
 # (../agents.nix): booted in a Kata VM rather than a podman container, with
 # the sandbox's volume at /disk and /persist, and opencode as a server for the
-# Redmine operator.
+# agent operator.
 {
   lib,
   pkgs,
