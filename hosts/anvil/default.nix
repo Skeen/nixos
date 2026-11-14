@@ -19,7 +19,7 @@ in {
     ./tuxedo.nix
     ./disko.nix
     ./impermanence.nix
-    ./podman.nix
+    ../../modules/base/podman.nix
     ../../modules/base/fish.nix
     ./home-manager.nix
     ../../modules/base/agenix.nix
