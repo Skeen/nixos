@@ -1,206 +1,55 @@
 {
   clank,
-  nixpkgs,
+  config,
   pkgs,
   ...
 }: let
-  # opencode 2, as clank has it (with a fix for its build), since nixpkgs
-  # 26.05 only has opencode 1, whose API differs
-  opencode = clank.legacyPackages.${pkgs.stdenv.hostPlatform.system}.opencode;
+  # The system of the sandboxes: clank's, from its container modules and those
+  # clank gets on anvil (../../modules/base/clank/modules.nix), made the
+  # system of a Kata VM serving opencode by ./agents/sandbox.nix. So the
+  # agents have the tools, skills and configuration of clank.
+  sandbox = clank.inputs.nixpkgs.lib.nixosSystem {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    specialArgs.inputs = clank.inputs;
+    modules =
+      [
+        {nixpkgs.overlays = [clank.overlays.default];}
+        "${clank}/container"
+      ]
+      ++ import ../../modules/base/clank/modules.nix {inherit clank;}
+      ++ [./agents/sandbox.nix];
+  };
+  system = sandbox.config.system.build.toplevel;
 
-  # What the agents reach through the credentials proxy
-  # (./credentials-proxy.nix), which adds the credentials
-  proxied = name: "http://${name}.credentials-proxy.svc.cluster.local";
-
-  # opencode's configuration in the sandboxes: it reaches the model through
-  # the proxy, and uses tools without asking, as nobody is there to ask.
-  configuration = pkgs.writeText "opencode.json" (builtins.toJSON {
-    "$schema" = "https://opencode.ai/config.json";
-    model = "greenpt/glm-5.3";
-    providers.greenpt.settings = {
-      apiKey = "dummy";
-      baseURL = "${proxied "model"}/v1";
-    };
-    permissions = [
-      {
-        action = "*";
-        resource = "*";
-        effect = "allow";
-      }
-      # The agent asks in its reply instead, which ./agents/AGENTS.md tells it
-      {
-        action = "question";
-        resource = "*";
-        effect = "deny";
-      }
-    ];
-    instructions = ["${./agents/AGENTS.md}"];
-    # Nor is anybody there to undo changes or share sessions
-    snapshots = false;
-    share = "disabled";
-    update = "disable";
-    websearch = false;
-  });
-
-  # git and glab reach GitLab through the proxy, as clank's do
-  gitConfig = pkgs.writeTextDir "etc/gitconfig" ''
-    [url "${proxied "gitlab"}/"]
-    	insteadOf = git@git.magenta.dk:
-    	insteadOf = https://git.magenta.dk/
-    [user]
-    	name = AI Bot
-    	email = ai@magenta.dk
-  '';
-  glabConfig = pkgs.writeText "glab-config.yml" (builtins.toJSON {
-    check_update = false;
-    show_whats_new = false;
-    telemetry = false;
-    hosts = {
-      # glab uses https unless told otherwise
-      "gitlab.credentials-proxy.svc.cluster.local".api_protocol = "http";
-      # Merge request URLs name git.magenta.dk
-      "git.magenta.dk" = {
-        api_protocol = "http";
-        api_host = "gitlab.credentials-proxy.svc.cluster.local";
-      };
-    };
-  });
-
-  # Nix, for agents to install what they need: single-user, as root, with
-  # `nixpkgs` the nixpkgs of anvil
-  nixConfig = pkgs.runCommand "nix-config" {} ''
-    mkdir -p $out/etc/nix
-    cat > $out/etc/nix/nix.conf << 'EOF'
-    experimental-features = nix-command flakes
-    build-users-group =
-    sandbox = false
-    flake-registry =
-    EOF
-    cat > $out/etc/nix/registry.json << 'EOF'
-    ${builtins.toJSON {
-      version = 2;
-      flakes = [
-        {
-          from = {
-            type = "indirect";
-            id = "nixpkgs";
-          };
-          to = {
-            type = "github";
-            owner = "NixOS";
-            repo = "nixpkgs";
-            inherit (nixpkgs) rev;
-          };
-        }
-      ];
-    }}
-    EOF
-  '';
-
-  # podman, for agents to run containers, also as `docker`. In the sandbox's
-  # VM, its storage goes through fuse-overlayfs, as the kernel's overlay
-  # cannot write to virtio-fs, and its containers do without cgroups of their
-  # own, as the VM does not hand its controllers down that far.
-  containersConfig = pkgs.runCommand "containers-config" {} ''
-    mkdir -p $out/etc/containers
-    cat > $out/etc/containers/policy.json << 'EOF'
-    {"default": [{"type": "insecureAcceptAnything"}]}
-    EOF
-    cat > $out/etc/containers/registries.conf << 'EOF'
-    unqualified-search-registries = ["docker.io"]
-    EOF
-    cat > $out/etc/containers/storage.conf << 'EOF'
-    [storage]
-    driver = "overlay"
-    graphroot = "/var/lib/containers/storage"
-    runroot = "/run/containers/storage"
-
-    [storage.options.overlay]
-    mount_program = "/bin/fuse-overlayfs"
-    EOF
-    cat > $out/etc/containers/containers.conf << 'EOF'
-    [containers]
-    cgroups = "disabled"
-
-    [engine]
-    cgroup_manager = "cgroupfs"
-    events_logger = "file"
-    EOF
-  '';
-  docker = pkgs.writeShellScriptBin "docker" ''
-    exec podman "$@"
-  '';
-
-  # FUSE is in the kernel of the sandbox's VM, but not among the devices of
-  # its containers; the agent's container is privileged, so it may make it.
-  start = pkgs.writeShellScriptBin "start-agent" ''
-    [ -e /dev/fuse ] || mknod -m 666 /dev/fuse c 10 229 || true
-    exec opencode serve --hostname 0.0.0.0 --port 4096 --print-logs
-  '';
-
+  # The system as an image, with a Nix database for the store in it, booting
+  # NixOS's init (systemd), which stops on SIGRTMIN+3 rather than SIGTERM
   image = pkgs.dockerTools.buildLayeredImageWithNixDb {
     name = "agent";
-    contents = with pkgs; [
-      # What programs expect to find on a system
-      dockerTools.binSh
-      dockerTools.caCertificates
-      dockerTools.fakeNss
-      dockerTools.usrBinEnv
-      gitConfig
-      nixConfig
-      containersConfig
-      start
-      opencode
-      (writeScriptBin "transcript" ''
-        #!${python3}/bin/python3
+    contents = [
+      (pkgs.runCommand "agent-root" {} ''
+        mkdir -p $out/.sandbox $out/var
+        ln -s ${system} $out/.sandbox/system
+        ln -s /run $out/var/run
+      '')
+    ];
+    maxLayers = 120;
+    config = {
+      Entrypoint = ["${system}/init"];
+      Env = ["container=oci"];
+      StopSignal = "SIGRTMIN+3";
+    };
+  };
+
+  # Prints what the agent does to the pod's log (./agents/transcript.py)
+  transcriptImage = pkgs.dockerTools.buildLayeredImage {
+    name = "agent-transcript";
+    contents = [
+      (pkgs.writeScriptBin "transcript" ''
+        #!${pkgs.python3}/bin/python3
         ${builtins.readFile ./agents/transcript.py}
       '')
-      # Tools for the agent
-      bashInteractive
-      coreutils
-      curl
-      diffutils
-      docker
-      findutils
-      fuse-overlayfs
-      gawk
-      git
-      glab
-      gnugrep
-      gnused
-      gnutar
-      gzip
-      iptables
-      jq
-      less
-      nix
-      patch
-      podman
-      procps
-      python3
-      ripgrep
-      unzip
-      which
-      xz
     ];
-    extraCommands = ''
-      mkdir -p root tmp var/tmp var/lib/containers run workspace
-      chmod 1777 tmp var/tmp
-      # A copy, as glab insists on writing to its configuration
-      install -D -m 600 ${glabConfig} root/.config/glab-cli/config.yml
-    '';
-    config = {
-      Cmd = ["start-agent"];
-      Env = [
-        "PATH=/bin"
-        "HOME=/root"
-        "NIX_PATH=nixpkgs=flake:nixpkgs"
-        "OPENCODE_CONFIG=${configuration}"
-        "REDMINE_URL=${proxied "redmine"}"
-        "GITLAB_HOST=${proxied "gitlab"}"
-      ];
-      WorkingDir = "/workspace";
-    };
+    config.Cmd = ["/bin/transcript"];
   };
 
   # The password of opencode's server, made up by the Redmine operator
@@ -212,12 +61,45 @@
       key = "password";
     };
   };
+
+  # The ports of the credentials proxy (./credentials-proxy.nix), as clank
+  # has them at clank-proxy
+  proxyPorts = [1655 1394 1932 1942 1974];
 in {
-  services.k3s.images = [image];
+  # The images go into containerd only when they are new: k3s would import
+  # them again on every start, which takes a while for the system's. Pinned,
+  # so that the kubelet does not remove them while no sandbox runs.
+  systemd.services.agent-images = {
+    description = "Import the images of agents' sandboxes into k3s";
+    wantedBy = ["k3s.service"];
+    after = ["k3s.service"];
+    partOf = ["k3s.service"];
+    restartTriggers = [image transcriptImage];
+    path = [config.services.k3s.package];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      Restart = "on-failure";
+      RestartSec = "10s";
+    };
+    script = ''
+      until k3s ctr version > /dev/null 2>&1; do
+        sleep 2
+      done
+      for image in ${image}:${image.imageName}:${image.imageTag} ${transcriptImage}:${transcriptImage.imageName}:${transcriptImage.imageTag}; do
+        IFS=: read -r archive name tag <<< "$image"
+        reference="docker.io/library/$name:$tag"
+        if ! k3s ctr -n k8s.io images ls -q | grep -qxF "$reference"; then
+          k3s ctr -n k8s.io images import "$archive"
+        fi
+        k3s ctr -n k8s.io images label "$reference" io.cri-containerd.pinned=pinned > /dev/null
+      done
+    '';
+  };
 
   # The agents the Redmine operator (./redmine-operator.nix) has work on
   # tickets: opencode, run as a server in a sandbox (./agent-sandbox.nix) of
-  # its own, which is a VM (./kata.nix) with a workspace volume, started as
+  # its own, which is a VM (./kata.nix) with a volume of its own, started as
   # the ticket is assigned. A sandbox's pod logs what its agent does, as it
   # does it:
   #
@@ -240,7 +122,6 @@ in {
               name = "agent";
               image = "${image.imageName}:${image.imageTag}";
               imagePullPolicy = "Never";
-              env = [password];
               ports = [
                 {
                   name = "opencode";
@@ -248,36 +129,37 @@ in {
                 }
               ];
               readinessProbe.tcpSocket.port = "opencode";
-              # For podman. Privileged in the VM of the sandbox, not on the
-              # laptop: Kata keeps the laptop's devices out of it.
+              # For systemd and podman. Privileged in the VM of the sandbox,
+              # not on the laptop: Kata keeps the laptop's devices out of it.
               securityContext.privileged = true;
-              # The workspace, opencode's sessions and container images
-              # survive restarts of the sandbox
-              volumeMounts = [
-                {
+              # The volume of the sandbox, where clank keeps what lasts:
+              # opencode's sessions, container images and so on, as well as
+              # the workspace
+              volumeMounts =
+                map (path: {
                   name = "workspace";
-                  mountPath = "/workspace";
-                  subPath = "workspace";
-                }
-                {
-                  name = "workspace";
-                  mountPath = "/root/.local/share/opencode";
-                  subPath = "opencode";
-                }
-                {
-                  name = "workspace";
-                  mountPath = "/var/lib/containers";
-                  subPath = "containers";
-                }
-              ];
+                  mountPath = "/${path}";
+                  subPath = path;
+                }) ["workspace" "disk" "persist"]
+                ++ [
+                  {
+                    name = "agent-server";
+                    mountPath = "/secrets/agent-server";
+                    readOnly = true;
+                  }
+                ];
             }
-            # Prints what the agent does to the pod's log (./agents/transcript.py)
             {
               name = "transcript";
-              image = "${image.imageName}:${image.imageTag}";
+              image = "${transcriptImage.imageName}:${transcriptImage.imageTag}";
               imagePullPolicy = "Never";
-              command = ["transcript"];
               env = [password];
+            }
+          ];
+          volumes = [
+            {
+              name = "agent-server";
+              secret.secretName = "agent-server";
             }
           ];
         };
@@ -319,10 +201,12 @@ in {
                   podSelector.matchLabels."app.kubernetes.io/name" = "credentials-proxy";
                 }
               ];
-              ports = map (port: {
-                protocol = "TCP";
-                inherit port;
-              }) [8080 8081 8082];
+              ports =
+                map (port: {
+                  protocol = "TCP";
+                  inherit port;
+                })
+                proxyPorts;
             }
             {
               to = [
@@ -362,6 +246,9 @@ in {
         };
       };
     }
+    # Claims need a warm pool in agent-sandbox 1.0, but keeping sandboxes
+    # started ahead of time saves little, as they start in seconds: with
+    # none, a claim makes its own from the template.
     {
       apiVersion = "extensions.agents.x-k8s.io/v1beta1";
       kind = "SandboxWarmPool";
@@ -369,12 +256,22 @@ in {
         name = "agent";
         namespace = "agents";
       };
-      # Claims need a warm pool in agent-sandbox 1.0, but keeping sandboxes
-      # started ahead of time saves little, as they start in seconds: with
-      # none, a claim makes its own from the template.
       spec = {
         replicas = 0;
         sandboxTemplateRef.name = "agent";
+      };
+    }
+    # clank's modules reach the proxy as clank-proxy
+    {
+      apiVersion = "v1";
+      kind = "Service";
+      metadata = {
+        name = "clank-proxy";
+        namespace = "agents";
+      };
+      spec = {
+        type = "ExternalName";
+        externalName = "clank-proxy.credentials-proxy.svc.cluster.local";
       };
     }
   ];

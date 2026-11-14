@@ -1,23 +1,21 @@
-"""A GitLab for ./../vm-test.nix, which only tells whether requests came with
-the credentials it is given: the API token, and the basic authentication git
-uses. It answers each request with that, and logs it.
+"""A stand-in for the services behind the credentials proxy in ./../vm-test.nix
+(GitLab, Kagi, Grafana's Loki), which answers each request with the
+credentials it came with, and logs them.
 
-    python3 gitlab.py <address> <port> <token> <basic>
+    python3 upstream.py <address> <port>
 """
 
 import json
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-ADDRESS, PORT, TOKEN, BASIC = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
-
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         seen = {
             "path": self.path,
-            "token": self.headers.get("PRIVATE-TOKEN") == TOKEN,
-            "basic": self.headers.get("Authorization") == f"Basic {BASIC}",
+            "private-token": self.headers.get("PRIVATE-TOKEN"),
+            "authorization": self.headers.get("Authorization"),
         }
         print(json.dumps(seen), flush=True)
         body = json.dumps(seen).encode()
@@ -33,4 +31,4 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
-ThreadingHTTPServer((ADDRESS, PORT), Handler).serve_forever()
+ThreadingHTTPServer((sys.argv[1], int(sys.argv[2])), Handler).serve_forever()
