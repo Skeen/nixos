@@ -30,6 +30,7 @@ in {
     ./discord.nix
     ./steam.nix
     ./swap.nix
+    ./earlyoom.nix
     ./podman.nix
     ../../modules/base/fish.nix
     ./nix-ld.nix
