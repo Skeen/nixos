@@ -22,7 +22,7 @@ in {
     ./podman.nix
     ../../modules/base/fish.nix
     ./home-manager.nix
-    ./agenix.nix
+    ../../modules/base/agenix.nix
     ../../modules/base/git.nix
     ../../modules/base/clank.nix
     ../../modules/base/earlyoom.nix

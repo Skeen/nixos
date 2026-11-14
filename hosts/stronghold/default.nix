@@ -13,7 +13,7 @@
     ./impermanence.nix
     ./home-manager.nix
     ./shell.nix
-    ./agenix.nix
+    ../../modules/base/agenix.nix
     ../../modules/server/ssh.nix
     ./ssh-key.nix
     ./ssh-known-hosts.nix

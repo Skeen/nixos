@@ -22,7 +22,7 @@ in {
     ./nixos-hardware.nix
     ./impermanence.nix
     ./home-manager.nix
-    ./agenix.nix
+    ../../modules/base/agenix.nix
     ../../modules/base/git.nix
     ./monitors.nix
     ./xfce/default.nix

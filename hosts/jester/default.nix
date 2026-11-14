@@ -19,7 +19,7 @@
     ./controller.nix
     ../../modules/base/fish.nix
     ./home-manager.nix
-    ./agenix.nix
+    ../../modules/base/agenix.nix
     ../../modules/base/git.nix
     ../../modules/server/ssh.nix
   ];

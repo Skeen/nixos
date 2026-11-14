@@ -11,7 +11,7 @@
   nixpkgs.hostPlatform = "aarch64-linux";
 
   imports = [
-    ./agenix.nix
+    ../../modules/base/agenix.nix
     ./hardware.nix
     ./impermanence.nix
     ./home-manager.nix
