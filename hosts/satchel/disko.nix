@@ -20,7 +20,7 @@
   #
   # Impermanence is achieved by rolling @root back to the pristine @root-blank
   # snapshot in early boot. Everything that must survive a reboot is bind-mounted
-  # back in from /nix/persist by the impermanence module (see ./impermanence.nix),
+  # back in from /nix/persist by the impermanence module (see ../../modules/base/impermanence.nix),
   # exactly as on the other hosts, so only /nix (and /boot) truly persist.
 
   imports = [

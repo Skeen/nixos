@@ -20,7 +20,7 @@ in {
     # Include the results of the hardware scan.
     ./hardware.nix
     ./nixos-hardware.nix
-    ./impermanence.nix
+    ../../modules/base/impermanence.nix
     ./home-manager.nix
     ../../modules/base/agenix.nix
     ../../modules/base/git.nix

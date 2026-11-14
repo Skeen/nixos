@@ -18,7 +18,7 @@ in {
     ./nixos-hardware.nix
     ./tuxedo.nix
     ./disko.nix
-    ./impermanence.nix
+    ../../modules/base/impermanence.nix
     ../../modules/base/podman.nix
     ../../modules/base/fish.nix
     ./home-manager.nix
