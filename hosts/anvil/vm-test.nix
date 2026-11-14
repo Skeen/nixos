@@ -5,7 +5,8 @@
 # reboot, state on btrfs under /nix/persist, the firewall, and an uplink
 # managed by NetworkManager), next to a second machine playing the network the
 # laptop is on, as well as the internet, with a scripted model provider
-# (./vm-test/model.py) and a stand-in for GitLab (./vm-test/gitlab.py) on it.
+# (./vm-test/model.py) and a stand-in for the other services agents use
+# (./vm-test/upstream.py) on it.
 # Sandboxes run in VMs in that VM, which needs nested virtualization. Run it
 # with:
 #
@@ -201,8 +202,11 @@
   internet = "203.0.113.1";
   # The API key of the model provider there, and the credentials of a GitLab
   modelKey = "model-key";
+  # and the credentials of the services standing in for GitLab, Kagi and Loki
   gitlabToken = "gitlab-token";
   gitlabBasic = "Z2l0bGFiOnRva2Vu";
+  kagiToken = "kagi-token";
+  lokiBasic = "bG9raTp0b2tlbg==";
 in {
   name = "anvil-k3s";
 
@@ -231,7 +235,7 @@ in {
       diskImage = null;
       emptyDiskImages = [
         {
-          size = 8192;
+          size = 16384;
           driveConfig.deviceExtraOpts.serial = "persist";
         }
       ];
@@ -304,16 +308,24 @@ in {
       {
         web = {
           wantedBy = ["multi-user.target"];
-          serviceConfig.ExecStart = "${pkgs.busybox}/bin/httpd -f -p 80 -h ${pkgs.writeTextDir "index.html" "hello from lan\n"}";
+          # with an image for agents to run, as they cannot pull one
+          serviceConfig.ExecStart = let
+            root = pkgs.runCommand "web" {} ''
+              mkdir $out
+              echo "hello from lan" > $out/index.html
+              cp ${busyboxImage} $out/busybox.tar.gz
+            '';
+          in "${pkgs.busybox}/bin/httpd -f -p 80 -h ${root}";
         };
-        # The model provider of the agents, and a GitLab, on the internet
+        # The model provider of the agents, and what stands in for GitLab,
+        # Kagi and Loki, on the internet
         model = {
           wantedBy = ["multi-user.target"];
           serviceConfig.ExecStart = "${pkgs.python3}/bin/python3 ${./vm-test/model.py} 0.0.0.0 8000 ${modelKey}";
         };
-        gitlab = {
+        upstream = {
           wantedBy = ["multi-user.target"];
-          serviceConfig.ExecStart = "${pkgs.python3}/bin/python3 ${./vm-test/gitlab.py} 0.0.0.0 8001 ${gitlabToken} ${gitlabBasic}";
+          serviceConfig.ExecStart = "${pkgs.python3}/bin/python3 ${./vm-test/upstream.py} 0.0.0.0 8001";
         };
       }
       # A nameserver per network, each resolving `where.test` to its own
@@ -400,6 +412,36 @@ in {
     def ticket_notes(key, ticket):
         issue = redmine_api(key, "GET", f"/issues/{ticket}.json?include=journals")["issue"]
         return issue["status"]["name"], [journal["notes"] for journal in issue["journals"] if journal["notes"]]
+
+
+    commands = iter(range(1000))
+
+
+    def in_sandbox(sandbox, command, check=True, timeout=180):
+        # Runs a command in an agent's sandbox, through the shell API of its
+        # opencode server, as kubectl exec cannot enter a container whose init
+        # is systemd under Kata. Returns whether it succeeded, and its output.
+        address = anvil.succeed(f"kubectl -n agents get pod {sandbox} -o jsonpath='{{.status.podIP}}'").strip()
+        password = anvil.succeed("kubectl -n agents get secret agent-server -o jsonpath='{.data.password}' | base64 -d").strip()
+        api = f"curl -sf -m 10 -u opencode:{password} -H 'Content-Type: application/json' http://{address}:4096/api/session"
+        message = f"msg_test{next(commands):04d}"
+        for name, payload in [("session", {"id": "ses_test", "location": {"directory": "/workspace"}}), ("command", {"id": message, "command": command})]:
+            anvil.succeed(f"cat > /tmp/{name}.json << 'EOF'\n{json.dumps(payload)}\nEOF")
+        anvil.succeed(f"{api} -X POST --data @/tmp/session.json")
+        anvil.succeed(f"{api}/ses_test/shell -X POST --data @/tmp/command.json")
+        deadline = time.monotonic() + timeout
+        while True:
+            status, shell = anvil.execute(f"{api}/ses_test/message/{message}")
+            shell = json.loads(shell)["data"] if status == 0 else {}
+            if shell.get("status", "running") != "running":
+                break
+            assert time.monotonic() < deadline, f"timed out running {command!r}"
+            time.sleep(1)
+        output = (shell.get("output") or {}).get("output", "")
+        succeeded = shell["status"] == "exited" and shell.get("exit") == 0
+        if check:
+            assert succeeded, f"{command!r} failed ({shell['status']}, {shell.get('exit')}):\n{output}"
+        return succeeded, output
 
 
     start_all()
@@ -490,9 +532,11 @@ in {
         ai_id, ai_key, admin_key = found.groups()
         # On anvil, the keys come from agenix
         anvil.succeed(f"kubectl -n redmine-operator create secret generic redmine-api-key --from-literal=key={ai_key}")
-        anvil.succeed("kubectl -n credentials-proxy create secret generic model-provider --from-literal=url=http://${internet}:8000 --from-literal=key=${modelKey}")
+        anvil.succeed("kubectl -n credentials-proxy create secret generic greenpt --from-literal=url=http://${internet}:8000 --from-literal=key=${modelKey}")
         anvil.succeed(f"kubectl -n credentials-proxy create secret generic redmine --from-literal=key={ai_key}")
         anvil.succeed("kubectl -n credentials-proxy create secret generic gitlab --from-literal=url=http://${internet}:8001 --from-literal=token=${gitlabToken} --from-literal=basic=${gitlabBasic}")
+        anvil.succeed("kubectl -n credentials-proxy create secret generic kagi --from-literal=url=http://${internet}:8001 --from-literal=token=${kagiToken}")
+        anvil.succeed("kubectl -n credentials-proxy create secret generic loki --from-literal=url=http://${internet}:8001 --from-literal=basic=${lokiBasic}")
         anvil.wait_until_succeeds("kubectl -n redmine-operator rollout status deployment/redmine-operator --timeout=5s", timeout=300)
 
         description = "Which kernel does your sandbox run?\n\nRUN: uname -r"
@@ -501,7 +545,7 @@ in {
         status, notes = ticket_notes(admin_key, ticket)
         assert any(f"redmine-{ticket}" in note for note in notes), notes
         sandbox = anvil.succeed(f"kubectl -n agents get sandboxclaim redmine-{ticket} -o jsonpath='{{.status.sandbox.name}}'").strip()
-        kernel = anvil.succeed(f"kubectl -n agents exec {sandbox} -- uname -r").strip()
+        kernel = in_sandbox(sandbox, "uname -r")[1].strip()
         assert kernel != anvil.succeed("uname -r").strip(), "the sandbox is not a VM"
 
         # The agent replies, with what it ran in the sandbox, which awaits
@@ -532,38 +576,39 @@ in {
             assert line in transcript, f"{line!r} is not in the transcript:\n{transcript}"
 
     with subtest("agents reach the internet and their model, not the laptop, its network or the cluster"):
-        proxy = "http://model.credentials-proxy.svc.cluster.local/v1/models"
-        anvil.succeed(f"kubectl -n agents exec {sandbox} -- curl -sf -m 5 -o /dev/null {proxy}")
-        anvil.succeed(f"kubectl -n agents exec {sandbox} -- curl -sf -m 5 -o /dev/null http://${internet}/")
+        in_sandbox(sandbox, "curl -sf -m 5 -o /dev/null http://clank-proxy:1655/v1/models")
+        in_sandbox(sandbox, "curl -sf -m 5 -o /dev/null http://${internet}/")
         for url in ["http://${networks.home}.1/", "https://10.41.0.1:6443/version", "https://10.43.0.1/version", "http://redmine.redmine.svc.cluster.local/login"]:
-            anvil.fail(f"kubectl -n agents exec {sandbox} -- curl -sk -m 5 -o /dev/null {url}")
+            assert not in_sandbox(sandbox, f"curl -sk -m 5 -o /dev/null {url}", check=False)[0], f"the sandbox reaches {url}"
         # Nor do other pods reach the credentials proxy
-        anvil.fail(f"kubectl exec workload -- curl -sf -m 5 -o /dev/null {proxy}")
+        for port in [1655, 1394, 1932, 1942, 1974]:
+            anvil.fail(f"kubectl exec workload -- curl -sf -m 5 -o /dev/null http://clank-proxy.credentials-proxy.svc.cluster.local:{port}/")
 
-    with subtest("agents reach Redmine, as AI Bot, and GitLab through the credentials proxy"):
+    with subtest("agents have clank's tools, reaching Redmine as AI Bot, GitLab, Kagi and Loki through the credentials proxy"):
         # Redmine, where it reads and changes its ticket
-        issue = json.loads(anvil.succeed(f"kubectl -n agents exec {sandbox} -- sh -c 'curl -sf $REDMINE_URL/issues/{ticket}.json'"))["issue"]
+        issue = json.loads(in_sandbox(sandbox, f"curl -sf $REDMINE_URL/issues/{ticket}.json")[1])["issue"]
         assert issue["subject"] == "Find the kernel", issue
-        anvil.succeed("echo '{\"issue\": {\"description\": \"The kernel is known\"}}' > /tmp/description.json")
-        anvil.succeed(f"kubectl -n agents exec -i {sandbox} -- sh -c 'curl -sf -X PUT -H Content-Type:application/json --data @- $REDMINE_URL/issues/{ticket}.json' < /tmp/description.json")
+        in_sandbox(sandbox, f"echo '{{\"issue\": {{\"description\": \"The kernel is known\"}}}}' | curl -sf -X PUT -H Content-Type:application/json --data @- $REDMINE_URL/issues/{ticket}.json")
         issue = redmine_api(admin_key, "GET", f"/issues/{ticket}.json")["issue"]
         assert issue["description"] == "The kernel is known", issue
         # GitLab, with the token for its API and basic authentication for git
-        seen = json.loads(anvil.succeed(f"kubectl -n agents exec {sandbox} -- sh -c 'curl -sf $GITLAB_HOST/api/v4/user'"))
-        assert seen["token"] and seen["basic"], seen
-        anvil.execute(f"kubectl -n agents exec {sandbox} -- git ls-remote https://git.magenta.dk/group/project.git")
-        lan.succeed("journalctl -u gitlab | grep -F /group/project.git/info/refs | grep -F '\"basic\": true'")
-        # Other pods reach neither
-        for service in ["redmine", "gitlab"]:
-            anvil.fail(f"kubectl exec workload -- curl -sf -m 5 -o /dev/null http://{service}.credentials-proxy.svc.cluster.local/")
+        seen = json.loads(in_sandbox(sandbox, "curl -sf $GITLAB_HOST/api/v4/user")[1])
+        assert seen["private-token"] == "${gitlabToken}" and seen["authorization"] == "Basic ${gitlabBasic}", seen
+        in_sandbox(sandbox, "git ls-remote https://git.magenta.dk/group/project.git", check=False)
+        lan.succeed("journalctl -u upstream | grep -F /group/project.git/info/refs | grep -F 'Basic ${gitlabBasic}'")
+        # Kagi, for search, and Loki, for logs
+        seen = json.loads(in_sandbox(sandbox, "curl -sf http://clank-proxy:1394/mcp")[1])
+        assert seen["authorization"] == "Bearer ${kagiToken}", seen
+        seen = json.loads(in_sandbox(sandbox, "curl -sf $LOKI_ADDR/loki/api/v1/labels")[1])
+        assert seen["authorization"] == "Basic ${lokiBasic}", seen
+        in_sandbox(sandbox, "which glab logcli claude opencode")
 
     with subtest("agents install with Nix, and run containers"):
         # Nix works, with a store it can add to (fetching nixpkgs takes the internet)
-        anvil.succeed(f"kubectl -n agents exec {sandbox} -- sh -c 'echo built > /tmp/out && nix store add-file /tmp/out && nix eval --expr \"1 + 1\"'")
+        in_sandbox(sandbox, "echo built > /tmp/out && nix store add-file /tmp/out && nix eval --expr '1 + 1'")
         # Containers run, with docker as well as podman, and reach the internet
-        anvil.succeed(f"kubectl -n agents exec -i {sandbox} -- sh -c 'cat > /tmp/busybox.tar.gz' < ${busyboxImage}")
-        anvil.succeed(f"kubectl -n agents exec {sandbox} -- podman load -i /tmp/busybox.tar.gz")
-        assert "hello from lan" in anvil.succeed(f"kubectl -n agents exec {sandbox} -- docker run --rm busybox wget -q -O - http://${internet}/")
+        in_sandbox(sandbox, "curl -sf -o /tmp/busybox.tar.gz http://${internet}/busybox.tar.gz && podman load -i /tmp/busybox.tar.gz")
+        assert "hello from lan" in in_sandbox(sandbox, "docker run --rm busybox wget -q -O - http://${internet}/")[1]
 
     with subtest("the cluster keeps working as the laptop roams to another network"):
         anvil.succeed("nmcli connection up work")
@@ -613,7 +658,7 @@ in {
         status, notes = ticket_notes(admin_key, ticket)
         assert notes.count(f"RESULT: {kernel}") == 1, notes
         # Its container images are kept too, and containers run again
-        anvil.succeed(f"kubectl -n agents exec {sandbox} -- docker run --rm busybox true")
+        in_sandbox(sandbox, "docker run --rm busybox true")
 
         closed = next(status["id"] for status in redmine_api(admin_key, "GET", "/issue_statuses.json")["issue_statuses"] if status["is_closed"])
         redmine_api(admin_key, "PUT", f"/issues/{ticket}.json", {"issue": {"status_id": closed}})
