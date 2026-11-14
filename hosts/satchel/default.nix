@@ -27,6 +27,7 @@ in {
     ../../modules/server/ssh.nix
     ./monitors.nix
     ./xfce/default.nix
+    ./swap.nix
   ];
 
   nix = {
