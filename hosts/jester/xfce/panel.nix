@@ -16,8 +16,10 @@ let
     "separator3"
     "audio"
     "separator4"
-    "clock"
+    "battery"
     "separator5"
+    "clock"
+    "separator6"
     "power"
   ];
 in
@@ -28,6 +30,7 @@ in
     home.packages = with pkgs; [
       xfce4-panel
       xfce4-pulseaudio-plugin
+      xfce4-power-manager
     ];
 
     # 2. Purge the XFCE database
@@ -86,8 +89,10 @@ in
           pluginIds.separator3
           pluginIds.audio
           pluginIds.separator4
-          pluginIds.clock
+          pluginIds.battery
           pluginIds.separator5
+          pluginIds.clock
+          pluginIds.separator6
           pluginIds.power
         ];
 
@@ -101,8 +106,10 @@ in
         "plugins/plugin-${toString pluginIds.separator3}" = "separator";
         "plugins/plugin-${toString pluginIds.audio}" = "pulseaudio";
         "plugins/plugin-${toString pluginIds.separator4}" = "separator";
-        "plugins/plugin-${toString pluginIds.clock}" = "clock";
+        "plugins/plugin-${toString pluginIds.battery}" = "power-manager-plugin";
         "plugins/plugin-${toString pluginIds.separator5}" = "separator";
+        "plugins/plugin-${toString pluginIds.clock}" = "clock";
+        "plugins/plugin-${toString pluginIds.separator6}" = "separator";
         "plugins/plugin-${toString pluginIds.power}" = "actions";
 
         # Individual Plugin Settings
@@ -126,6 +133,7 @@ in
         "plugins/plugin-${toString pluginIds.separator3}/style" = 0;
         "plugins/plugin-${toString pluginIds.separator4}/style" = 0;
         "plugins/plugin-${toString pluginIds.separator5}/style" = 0;
+        "plugins/plugin-${toString pluginIds.separator6}/style" = 0;
 
         # Audio
         # -----
@@ -140,6 +148,11 @@ in
         # We do not wanna peak volume above 100%
         # General: Behaviour: Maximum volume
         "plugins/plugin-${toString pluginIds.audio}/volume-max" = 100;
+
+        # Battery
+        # -------
+        # The power manager plugin keeps its settings in the xfce4-power-manager
+        # channel rather than under its plugin id, see power-manager.nix.
 
         # Clock
         # -----

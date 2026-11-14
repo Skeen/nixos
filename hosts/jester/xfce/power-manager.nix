@@ -44,9 +44,21 @@
         # General: Appearance: Status notifications
         "xfce4-power-manager/general-notification" = true;
 
-        # Show the power management tray icon so the battery status is visible
+        # Do not show the power management tray icon, the battery status is
+        # shown by the power manager plugin on the panel instead (see panel.nix)
         # General: Appearance: System tray icon
-        "xfce4-power-manager/show-tray-icon" = true;
+        "xfce4-power-manager/show-tray-icon" = false;
+
+        # Show both battery percentage and remaining time next to the panel plugin icon
+        #
+        # Panel label enum:
+        # 0 = None
+        # 1 = Percentage
+        # 2 = Remaining time
+        # 3 = Percentage and remaining time
+        #
+        # Power Manager Plugin: Properties: Show label
+        "xfce4-power-manager/show-panel-label" = 3;
 
         # Power/sleep/hibernate/battery button configuration.
         #
