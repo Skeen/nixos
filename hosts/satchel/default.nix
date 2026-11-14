@@ -28,6 +28,7 @@ in {
     ./monitors.nix
     ./xfce/default.nix
     ./swap.nix
+    ./earlyoom.nix
   ];
 
   nix = {
